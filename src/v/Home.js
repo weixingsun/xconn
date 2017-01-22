@@ -9,8 +9,10 @@ import { Col, Row, Grid } from "react-native-easy-grid";
 import I18n from 'react-native-i18n';
 import Menu, { MenuContext, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 import styles from '../style'
+import Const from '../Const'
 import http from 'react-native-mongoose'
 import udp from 'react-native-udp'  //'dgram'
+import BackgroundTimer from 'react-native-background-timer';
 
 export default class Home extends React.Component {
     constructor(props) {
@@ -31,6 +33,7 @@ export default class Home extends React.Component {
         this.udp = null
         this.HTTP_SERVER_PORT = 9999
         this.UDP_LISTEN_PORT  = 9998
+        this.heartbeat_id = 0
     }
     componentWillMount() {
         this.getSqlDB()
@@ -71,13 +74,18 @@ export default class Home extends React.Component {
             this.udp.setBroadcast(true);
         });
         //receive
-        this.udp.on('message', (msg, rinfo)=>{
-            console.warn('message was received', msg)
+        this.udp.on('message', (data, rinfo)=>{
+            //let msg = data.toString() //b64.fromByteArray(data)
+            let msg = String.fromCharCode.apply(null, new Uint8Array(data))
+            console.warn('received msg:'+msg)
         })
         //send
         this.udp.once('listening', ()=>{
-           this.sendMsg('255.255.255.255',this.UDP_LISTEN_PORT,'hello')
+            this.sendMsg('255.255.255.255',this.UDP_LISTEN_PORT,'ON')
         })
+        this.heartbeat_id = BackgroundTimer.setInterval(() => {
+            this.sendMsg('255.255.255.255',this.UDP_LISTEN_PORT,Const.CMD.HB)
+        }, 10000);
     }
     sendMsg(host,port,msg){
         var buf = this.toByteArray(msg)
@@ -193,6 +201,7 @@ export default class Home extends React.Component {
         })
         http.stop()
         this.udp.close()
+        BackgroundTimer.clearInterval(this.heartbeat_id)
     }
     taskAction(){
         if(this.state.task.running){

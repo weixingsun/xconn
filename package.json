@@ -19,6 +19,7 @@
     "react-native-mongoose": "git+https://github.com/weixingsun/react-native-mongoose.git",
     "react-native-popup-menu": "^0.7.0",
     "react-native-router-flux": "^3.37.0",
+    "react-native-udp": "^1.2.9",
     "react-native-vector-icons": "^4.0.0"
   },
   "devDependencies": {

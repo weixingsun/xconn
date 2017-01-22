@@ -36,6 +36,7 @@
 		69CBAD0BCF984104927BCD52 /* EvilIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 74415627D1114C72AB5CA664 /* EvilIcons.ttf */; };
 		6F42B8B0055C41C59A07C678 /* MaterialIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F9ED7E0BFB2141B3B9C20B3C /* MaterialIcons.ttf */; };
 		7F5FBABE8E4748ADB35EAB95 /* libRNDeviceInfo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D1C1794A6D4F9ABA28AD7E /* libRNDeviceInfo.a */; };
+		82A4C49F29994D69B5EBE6D7 /* libUdpSockets.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DD9AB107EAD44F49AD993416 /* libUdpSockets.a */; };
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 		871765439BC74BB1B25B15B9 /* Octicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B9673E72020A428C90ABAABE /* Octicons.ttf */; };
 		8C37A60B89B3440DADAA5C36 /* libRNDocumentPicker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F55DB5B26C9048A788F4B6E4 /* libRNDocumentPicker.a */; };
@@ -90,6 +91,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
 			remoteInfo = xconn;
+		};
+		031FDBF11E3435940037762D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E4094944E42244F1801A102E /* UdpSockets.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = UdpSockets;
 		};
 		03FCA5EB1E322303008270F3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -345,7 +353,9 @@
 		CDC6D5D1AB884CA28F2413F5 /* RNMail.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNMail.xcodeproj; path = "../node_modules/react-native-mail/RNMail.xcodeproj"; sourceTree = "<group>"; };
 		DC8D7CC8BD6D469D85525336 /* libyoga.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libyoga.a; sourceTree = "<group>"; };
 		DD2E77E16FFD42AEABE8B719 /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
+		DD9AB107EAD44F49AD993416 /* libUdpSockets.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libUdpSockets.a; sourceTree = "<group>"; };
 		DDC80043600F4F49ACE4EA51 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
+		E4094944E42244F1801A102E /* UdpSockets.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = UdpSockets.xcodeproj; path = "../node_modules/react-native-udp/ios/UdpSockets.xcodeproj"; sourceTree = "<group>"; };
 		F55DB5B26C9048A788F4B6E4 /* libRNDocumentPicker.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNDocumentPicker.a; sourceTree = "<group>"; };
 		F9ED7E0BFB2141B3B9C20B3C /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -384,6 +394,7 @@
 				7F5FBABE8E4748ADB35EAB95 /* libRNDeviceInfo.a in Frameworks */,
 				CC7689C5A935465FAC21D20A /* libRNMail.a in Frameworks */,
 				47E673BB396F4730AF634D26 /* libRNHTTPServer.a in Frameworks */,
+				82A4C49F29994D69B5EBE6D7 /* libUdpSockets.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -447,6 +458,14 @@
 				00E356F11AD99517003FC87E /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		031FDBCC1E3435940037762D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				031FDBF21E3435940037762D /* libUdpSockets.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		03FCA5CF1E322302008270F3 /* Products */ = {
@@ -595,6 +614,7 @@
 				85BE8784518748F18A246EA7 /* RNDeviceInfo.xcodeproj */,
 				CDC6D5D1AB884CA28F2413F5 /* RNMail.xcodeproj */,
 				462FC4A20E5A4DFABD4EE231 /* RNHTTPServer.xcodeproj */,
+				E4094944E42244F1801A102E /* UdpSockets.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -793,6 +813,10 @@
 					ProductGroup = 03FCA5CF1E322302008270F3 /* Products */;
 					ProjectRef = 97D446D2157C45058FD1E7ED /* RNVectorIcons.xcodeproj */;
 				},
+				{
+					ProductGroup = 031FDBCC1E3435940037762D /* Products */;
+					ProjectRef = E4094944E42244F1801A102E /* UdpSockets.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
@@ -836,6 +860,13 @@
 			fileType = archive.ar;
 			path = libRCTVibration.a;
 			remoteRef = 00C302E31ABCB9EE00DB3ED1 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		031FDBF21E3435940037762D /* libUdpSockets.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libUdpSockets.a;
+			remoteRef = 031FDBF11E3435940037762D /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		03FCA5EC1E322303008270F3 /* libRNVectorIcons.a */ = {
@@ -1155,6 +1186,7 @@
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/xconn.app/xconn";
@@ -1171,6 +1203,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",

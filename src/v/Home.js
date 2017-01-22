@@ -9,7 +9,8 @@ import { Col, Row, Grid } from "react-native-easy-grid";
 import I18n from 'react-native-i18n';
 import Menu, { MenuContext, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 import styles from '../style'
-import server from 'react-native-mongoose'
+import http from 'react-native-mongoose'
+import udp from 'react-native-udp'  //'dgram'
 
 export default class Home extends React.Component {
     constructor(props) {
@@ -27,6 +28,9 @@ export default class Home extends React.Component {
         this.renderMoreOption=this.renderMoreOption.bind(this)
         this.chooseSql=this.chooseSql.bind(this)
         this.taskAction=this.taskAction.bind(this)
+        this.socket = udp.createSocket('udp4')
+        this.HTTP_SERVER_PORT = 9999
+        this.UDP_LISTEN_PORT  = 9998
     }
     componentWillMount() {
         this.getSqlDB()
@@ -51,6 +55,40 @@ export default class Home extends React.Component {
                 });
             }
         });
+    }
+    // only works for 8-bit chars
+    toByteArray(obj) {
+      var uint = new Uint8Array(obj.length);
+      for (var i = 0, l = obj.length; i < l; i++){
+        uint[i] = obj.charCodeAt(i);
+      }
+      return new Uint8Array(uint);
+    }
+    setupUDP(){
+        this.socket.bind(this.UDP_LISTEN_PORT, (err)=>{
+            if (err) throw err;
+            this.socket.setBroadcast(true);
+        });
+        //receive
+        this.socket.on('message', (msg, rinfo)=>{
+            console.log('message was received:'+ msg)
+        })
+        //send
+        this.socket.once('listening', ()=>{
+            this.sendMsg('255.255.255.255',9998,'hello')
+        })
+    }
+    closeUDP(){
+        this.socket.close()
+    }
+    sendMsg(host,port,msg){
+        var buf = this.toByteArray(msg)
+        //let port = 9998
+        //let host = '255.255.255.255'
+        this.socket.send(buf, 0, buf.length, port, host, (err)=>{
+            if (err) throw err
+            console.log('message was sent')
+        })
     }
     getFileInfo(filePath){
         //filename.replace('%3A',':').replace('%2F','/')
@@ -159,10 +197,11 @@ export default class Home extends React.Component {
                 running:true,
             },
         })
-        server.start({
-            port:'9999',
+        http.start({
+            port:this.HTTP_SERVER_PORT+'',
             root:'DOCS',
         })
+        this.setupUDP()
     }
     stopTask(){
         this.setState({
@@ -170,7 +209,8 @@ export default class Home extends React.Component {
                 running:false,
             },
         })
-        server.stop()
+        http.stop()
+        this.socket.close()
     }
     taskAction(){
         if(this.state.task.running){

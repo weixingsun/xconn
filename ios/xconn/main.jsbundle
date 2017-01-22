@@ -99760,7 +99760,7 @@ _this.renderMore=_this.renderMore.bind(_this);
 _this.renderMoreOption=_this.renderMoreOption.bind(_this);
 _this.chooseSql=_this.chooseSql.bind(_this);
 _this.taskAction=_this.taskAction.bind(_this);
-_this.socket=_reactNativeUdp2.default.createSocket('udp4');
+_this.udp=null;
 _this.HTTP_SERVER_PORT=9999;
 _this.UDP_LISTEN_PORT=9998;return _this;
 }babelHelpers.createClass(Home,[{key:"componentWillMount",value:function componentWillMount()
@@ -99797,29 +99797,25 @@ uint[i]=obj.charCodeAt(i);
 return new Uint8Array(uint);
 }},{key:"setupUDP",value:function setupUDP()
 {var _this3=this;
-this.socket.bind(this.UDP_LISTEN_PORT,function(err){
+this.udp=_reactNativeUdp2.default.createSocket('udp4');
+this.udp.bind(this.UDP_LISTEN_PORT,function(err){
 if(err)throw err;
-_this3.socket.setBroadcast(true);
+_this3.udp.setBroadcast(true);
 });
 
-this.socket.on('message',function(msg,rinfo){
-console.log('message was received:'+msg);
+this.udp.on('message',function(msg,rinfo){
+console.warn('message was received',msg);
 });
 
-this.socket.once('listening',function(){
-_this3.sendMsg('255.255.255.255',9998,'hello');
+this.udp.once('listening',function(){
+_this3.sendMsg('255.255.255.255',_this3.UDP_LISTEN_PORT,'hello');
 });
-}},{key:"closeUDP",value:function closeUDP()
-{
-this.socket.close();
 }},{key:"sendMsg",value:function sendMsg(
 host,port,msg){
 var buf=this.toByteArray(msg);
-
-
-this.socket.send(buf,0,buf.length,port,host,function(err){
+this.udp.send(buf,0,buf.length,port,host,function(err){
 if(err)throw err;
-console.log('message was sent');
+console.log('sent msg:'+msg);
 });
 }},{key:"getFileInfo",value:function getFileInfo(
 filePath){
@@ -99908,20 +99904,6 @@ _react2.default.createElement(_reactNative.Text,{style:{color:'white'}},title)))
 
 
 
-}},{key:"_renderRowView",value:function _renderRowView(
-rowData){
-if(rowData==null)return;
-
-return(
-_react2.default.createElement(_reactNative.View,{style:_style2.default.row},
-_react2.default.createElement(_reactNativeEasyGrid.Grid,null,
-Object.keys(rowData).map(function(key,i){
-return _react2.default.createElement(_reactNativeEasyGrid.Col,{key:i,style:_style2.default.cell},_react2.default.createElement(_reactNative.Text,{style:_style2.default.value_text},rowData[key]));
-})),
-
-_react2.default.createElement(_reactNative.View,{style:_style2.default.separator})));
-
-
 }},{key:"startTask",value:function startTask()
 {
 this.setState({
@@ -99942,7 +99924,7 @@ running:false}});
 
 
 _reactNativeMongoose2.default.stop();
-this.socket.close();
+this.udp.close();
 }},{key:"taskAction",value:function taskAction()
 {var _this6=this;
 if(this.state.task.running){
@@ -99952,7 +99934,6 @@ _reactNativeI18n2.default.t("confirm_stop_task"),
 [
 {text:_reactNativeI18n2.default.t("no")},
 {text:_reactNativeI18n2.default.t('yes'),onPress:function onPress(){
-
 _this6.stopTask();
 }}]);
 
@@ -149227,8 +149208,8 @@ self.emit('listening');
 
 UdpSocket.prototype.close=function(){
 if(this._destroyed)return;
-
 this._destroyed=true;
+console.log('closing');
 this._debug('closing');
 this._subscription.remove();
 

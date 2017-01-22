@@ -28,7 +28,7 @@ export default class Home extends React.Component {
         this.renderMoreOption=this.renderMoreOption.bind(this)
         this.chooseSql=this.chooseSql.bind(this)
         this.taskAction=this.taskAction.bind(this)
-        this.socket = udp.createSocket('udp4')
+        this.udp = null
         this.HTTP_SERVER_PORT = 9999
         this.UDP_LISTEN_PORT  = 9998
     }
@@ -65,29 +65,25 @@ export default class Home extends React.Component {
       return new Uint8Array(uint);
     }
     setupUDP(){
-        this.socket.bind(this.UDP_LISTEN_PORT, (err)=>{
+        this.udp = udp.createSocket('udp4')
+        this.udp.bind(this.UDP_LISTEN_PORT, (err)=>{
             if (err) throw err;
-            this.socket.setBroadcast(true);
+            this.udp.setBroadcast(true);
         });
         //receive
-        this.socket.on('message', (msg, rinfo)=>{
-            console.log('message was received:'+ msg)
+        this.udp.on('message', (msg, rinfo)=>{
+            console.warn('message was received', msg)
         })
         //send
-        this.socket.once('listening', ()=>{
-            this.sendMsg('255.255.255.255',9998,'hello')
+        this.udp.once('listening', ()=>{
+           this.sendMsg('255.255.255.255',this.UDP_LISTEN_PORT,'hello')
         })
-    }
-    closeUDP(){
-        this.socket.close()
     }
     sendMsg(host,port,msg){
         var buf = this.toByteArray(msg)
-        //let port = 9998
-        //let host = '255.255.255.255'
-        this.socket.send(buf, 0, buf.length, port, host, (err)=>{
+        this.udp.send(buf, 0, buf.length, port, host, (err)=>{
             if (err) throw err
-            console.log('message was sent')
+            console.log('sent msg:'+msg)
         })
     }
     getFileInfo(filePath){
@@ -177,20 +173,6 @@ export default class Home extends React.Component {
             </MenuOption>
         )
     }
-    _renderRowView(rowData) {
-        if(rowData==null) return
-        //alert('rowData='+JSON.stringify(rowData))
-        return (
-            <View style={styles.row}>
-                <Grid >
-                    {Object.keys(rowData).map((key,i)=>{
-                        return <Col key={i} style={styles.cell}><Text style={styles.value_text}>{rowData[key]}</Text></Col>
-                    })}
-                </Grid>
-                <View style={styles.separator} />
-            </View>
-        );
-    }
     startTask(){
         this.setState({
             task:{
@@ -210,7 +192,7 @@ export default class Home extends React.Component {
             },
         })
         http.stop()
-        this.socket.close()
+        this.udp.close()
     }
     taskAction(){
         if(this.state.task.running){
@@ -220,7 +202,6 @@ export default class Home extends React.Component {
                 [
                     {text:I18n.t("no"), },
                     {text:I18n.t('yes'), onPress:()=>{
-                        //Linking.openURL('mailto:sun.app.service@gmail.com')
                         this.stopTask()
                     }},
                 ]

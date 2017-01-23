@@ -126,8 +126,6 @@ const Menu = (props, context) => {
 				<Text style={styles.menu_name}>{I18n.t('menu')}</Text>
             </View>
             {renderOneMenu(drawer,'folder',I18n.t("open_file"),showFilePicker)}
-            {renderOneMenu(drawer,'server',I18n.t("task_start"),Actions.task_start)}
-            {renderOneMenu(drawer,'sign-in',I18n.t("task_join"),Actions.task_join)}
             {renderOneMenu(drawer,'eye',I18n.t("overview"),Actions.overview)}
             {renderOneMenu(drawer,'envelope',I18n.t('feedback'),()=>DoubleConfirmDialog(I18n.t("feedback"),I18n.t("confirm_feedback"),MailSender))}
             {renderOneMenu(drawer,'info-circle',I18n.t("about"),Actions.about)}

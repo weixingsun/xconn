@@ -33,7 +33,7 @@ export default class Group extends React.Component {
                     style={{width: 100, height: 100, backgroundColor:'white'}}
                     source={require('./img/xconn.png')}
                 />
-                <Text style={{justifyContent:'center'}} >{I18n.t('xrows')} {DeviceInfo.getVersion()}</Text>
+                <Text style={{justifyContent:'center'}} >{I18n.t('xconn')} {DeviceInfo.getVersion()}</Text>
                 <Text style={{justifyContent:'center'}} > </Text>
                 <Text style={{justifyContent:'center'}} > </Text>
             </View>
@@ -45,7 +45,7 @@ export default class Group extends React.Component {
             <View style={{flex:1,height:200,justifyContent: 'center',alignItems:'center'}}>
                 <Text style={{justifyContent:'center'}} > </Text>
                 <Text style={{justifyContent:'center'}} > </Text>
-                <Text style={{justifyContent:'center'}} >Copyright @{date.getFullYear()+' '+I18n.t('xrows')}</Text>
+                <Text style={{justifyContent:'center'}} >Copyright @{date.getFullYear()+' '+I18n.t('xconn')}</Text>
                 <Text style={{justifyContent:'center'}} > </Text>
             </View>
         )

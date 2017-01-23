@@ -32,6 +32,16 @@ module.exports = {
         alignItems:'center',
         justifyContent:'center',
     },
+    button_idle:{
+        borderColor:'#16a085',
+        backgroundColor:'#1abc9c',
+        margin:20
+    },
+    button_running:{
+        borderColor:'#c0392b',
+        backgroundColor:'#e74c3c',
+        margin:20
+    },
     separator: {
         height: 1,
         backgroundColor: '#CCCCCC',
@@ -70,10 +80,16 @@ module.exports = {
         backgroundColor:'white',
     },
     right_icon:{
-        //paddingTop:1,
+        paddingTop:4,
         //paddingBottom:5,
-        paddingLeft:40,
-        paddingRight:10,
+        paddingLeft:15,
+        //paddingRight:10,
+        width: 50,
+        height: 24,
+        //borderColor: '#8e44ad',
+        //backgroundColor: 'blue',
+        borderRadius: 0,
+        borderWidth: 2,
         //alignItems:'center',
         //justifyContent:'center',
     },

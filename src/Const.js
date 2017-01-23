@@ -15,4 +15,8 @@ module.exports = {
     UL:  'UL', //'Upload a file: from client to server',
     ULD: 'ULD',//'Complete a Upload: from client to server',
   },
+  ROLE:{
+    CLIENT:'c',
+    SERVER:'s',
+  },
 }

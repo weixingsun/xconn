@@ -13,61 +13,45 @@ import Const from '../Const'
 import http from 'react-native-mongoose'
 import udp from 'react-native-udp'  //'dgram'
 import BackgroundTimer from 'react-native-background-timer';
+import * as Animatable from 'react-native-animatable';
+import DeviceInfo from 'react-native-device-info'
+import NetworkInfo from 'react-native-network-info'
+import Button from 'apsl-react-native-button'
 
 export default class Home extends React.Component {
     constructor(props) {
         super(props);
         this.ds= new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
         this.state={ 
-            sqls:{},
             task:{
                 running:false,
                 progress:0,
+                role:Const.ROLE.CLIENT,
             },
+            server_menu_opened: false,
+            servers:{}, //available to connect from client
+            //my_server:'127.0.0.1',
+            //clients:{}, //available to connect from server
         }
-        this.file=null
+        this.ip='127.0.0.1'
         this.renderMore=this.renderMore.bind(this)
         this.renderMoreOption=this.renderMoreOption.bind(this)
-        this.chooseSql=this.chooseSql.bind(this)
+        this.chooseServer=this.chooseServer.bind(this)
         this.taskAction=this.taskAction.bind(this)
         this.udp = null
         this.HTTP_SERVER_PORT = 9999
         this.UDP_LISTEN_PORT  = 9998
         this.heartbeat_id = 0
+        this.hostname = DeviceInfo.getDeviceName()
     }
     componentWillMount() {
-        this.getSqlDB()
-    }
-    componentWillReceiveProps(nextProps) {
-        //nextProps={onNavigate,navigationState,name,sceneKey,parent,type,title,initial,drawerIcon,component,index,file,from}
-        //alert('componentWillReceiveProps: file'+JSON.stringify(nextProps.file))
-        if(nextProps.file!==null){
-            this.readFile(nextProps.file);
-            this.getSqlDB()
-        //}else if(nextProps.content){
-        //    this.setState({content:nextProps.content})
-        }else if(nextProps.add){
-            this.getSqlDB()
-        }
-    }
-    getSqlDB(){
-        AsyncStorage.getItem('sqls').then((value)=>{
-            if(value){
-                this.setState({
-                    sqls:JSON.parse(value)
-                });
-            }
+        this.updateWithActionIcon()
+        this.listenUDP()
+        NetworkInfo.getIPAddress(ip => {
+          this.ip=ip
         });
     }
-    // only works for 8-bit chars
-    toByteArray(obj) {
-      var uint = new Uint8Array(obj.length);
-      for (var i = 0, l = obj.length; i < l; i++){
-        uint[i] = obj.charCodeAt(i);
-      }
-      return new Uint8Array(uint);
-    }
-    setupUDP(){
+    listenUDP(){
         this.udp = udp.createSocket('udp4')
         this.udp.bind(this.UDP_LISTEN_PORT, (err)=>{
             if (err) throw err;
@@ -76,22 +60,18 @@ export default class Home extends React.Component {
         //receive
         this.udp.on('message', (data, rinfo)=>{
             //let msg = data.toString() //b64.fromByteArray(data)
-            let msg = String.fromCharCode.apply(null, new Uint8Array(data))
-            console.warn('received msg:'+msg)
+            let strMsg = this.ab2str8(data)
+            let json = JSON.parse(strMsg)
+            var servers = this.state.servers
+            servers[json.ip]=json
+            this.setState({
+                servers
+            })
+            //console.warn('received msg:'+msg)
+            this.updateWithActionIcon()
         })
-        //send
+        //ready
         this.udp.once('listening', ()=>{
-            this.sendMsg('255.255.255.255',this.UDP_LISTEN_PORT,'ON')
-        })
-        this.heartbeat_id = BackgroundTimer.setInterval(() => {
-            this.sendMsg('255.255.255.255',this.UDP_LISTEN_PORT,Const.CMD.HB)
-        }, 10000);
-    }
-    sendMsg(host,port,msg){
-        var buf = this.toByteArray(msg)
-        this.udp.send(buf, 0, buf.length, port, host, (err)=>{
-            if (err) throw err
-            console.log('sent msg:'+msg)
         })
     }
     getFileInfo(filePath){
@@ -110,54 +90,35 @@ export default class Home extends React.Component {
             full:filePath,
         }
     }
-    readFile(filePath){
-        this.file = this.getFileInfo(filePath)
-        //alert(this.file.ext)
-        if(this.file.ext==='csv'||this.file.ext==='xls'||this.file.ext==='xlsx'){
-            this.readExcel(this.file)
-        }
-    }
-    readExcel(file){
-        //var sql = 'SELECT * from csv("'+file.full+'",{headers:true}) '
-        var sql = 'SELECT * from '+file.ext+'("'+file.full+'") '
-        //alert('sql='+sql)
-        //this.updateWithActionIcon()
-        alasql(sql,[],(result)=>{
-            //alert('alasql.select * '+JSON.stringify(result))
-            this.updateWithActionIcon()
-            this.setState({
-                lines:result,
-            })
-            //let sql2 = 'SELECT * INTO csv("'+this.file.dir+'/test2.csv",{headers:true,separator:","}) FROM ?'
-            //alert('sql2='+sql2)
-            //alasql(sql2, [result]);
-        })
-    }
     updateWithActionIcon(){
         Actions.refresh({
             key:'home',
-            title:this.file.name,
+            //title:this.file.name,
             //renderRightButton: ()=> <Icon name={'play'} size={20} color={'#333'} onPress={()=>  } />,
             renderRightButton: this.renderMore,
             //content:content,
             file:null,
         });
     }
-    chooseSql(value){
-        if(value==='') Actions.sql_add({})
-        else Actions.result({file:this.file.full,sql:value})
+    chooseServer(value){
+        //if(value==='') Actions.sql_add({})
+        //else Actions.result({file:this.file.full,sql:value})
+        //alert(JSON.stringify(this.state.servers[value]))
+        Actions.client({server:this.state.servers[value]})
     }
     renderMore(){
         return (
           <View style={{ flex:1 }}>
-            <Menu onSelect={(value) => this.chooseSql(value) }>
-              <MenuTrigger>
-                <Icon name={'play'} size={24} style={styles.right_icon} color={'black'} />
+            <Menu name='serverMenu' onSelect={(value)=>this.chooseServer(value)}>
+              <MenuTrigger onPress={this.onTriggerPress}>
+                <Text style={styles.right_icon}>
+                  {Object.keys(this.state.servers).length} <Icon name="caret-down" size={15}/>
+                </Text>
               </MenuTrigger>
               <MenuOptions>
                 {this.renderMoreOption('add','','plus')}
-                {Object.keys(this.state.sqls).map((k,i)=>{
-                        return this.renderMoreOption('',k,'play')
+                {Object.keys(this.state.servers).map((k,i)=>{
+                    return this.renderMoreOption('',k,'play')
                 })}
               </MenuOptions>
             </Menu>
@@ -166,12 +127,12 @@ export default class Home extends React.Component {
     }
     renderMoreOption(act,value,icon){
         //style={{backgroundColor:'white'}}
-        let title=I18n.t('sql')+' '+value
-        if(act==='add') title=I18n.t('add')+I18n.t('sql')
+        let title=I18n.t('task_join')+' '+value
+        if(act==='add') title=I18n.t('task_start')
         return (
             <MenuOption value={value} key={value} style={{padding:1}}>
                 <View style={{flexDirection:'row',height:40,backgroundColor:'#494949'}}>
-                    <View style={{width:40,justifyContent:'center'}}>
+                    <View style={{width:30,justifyContent:'center'}}>
                         <Icon name={icon} color={'white'} size={16} style={{marginLeft:10}}/>
                     </View>
                     <View style={{justifyContent:'center'}}>
@@ -185,22 +146,25 @@ export default class Home extends React.Component {
         this.setState({
             task:{
                 running:true,
+                role:Const.ROLE.SERVER,
             },
         })
         http.start({
             port:this.HTTP_SERVER_PORT+'',
             root:'DOCS',
         })
-        this.setupUDP()
+        this.setupHbUdp()
+        
     }
     stopTask(){
         this.setState({
             task:{
                 running:false,
+                role:Const.ROLE.CLIENT,
             },
         })
         http.stop()
-        this.udp.close()
+        //this.udp.close()
         BackgroundTimer.clearInterval(this.heartbeat_id)
     }
     taskAction(){
@@ -220,17 +184,19 @@ export default class Home extends React.Component {
         }
     }
     _renderCircle() {
-        let src = this.state.task.running?require('./img/circle-red.png'):require('./img/circle-green.png')
+        let src = this.state.task.running?require('./img/circle-red.png'):require('./img/radar0.png')
+        let animate = this.state.task.running?'pulse':'rotate'
+        //<TouchableHighlight underlayColor={'white'} onPress={this.taskAction}
         return (
             <View style={styles.home_circle}>
-                <TouchableHighlight
-                    underlayColor={'white'}
-                    onPress={this.taskAction}>
-                <Image
+                <Animatable.Image
+                    animation={animate} //pulse,rotate,bounce,flash,rubberBand,shake,swing,tada,wobble,zoomIn,zoomOut
+                    duration={3000}
+                    easing="linear"
+                    iterationCount="infinite"
                     style={styles.home_circle}
                     source={src}
                 />
-                </TouchableHighlight>   
             </View>
         );
     }
@@ -239,9 +205,16 @@ export default class Home extends React.Component {
         <View style={styles.content} >
             {this._renderCircle()}
             <View style={{height:100}}/>
-            <View style={{height:100}}>
-                <Text>Join a task</Text>
-            </View>
+                <Button
+                  style={styles.button_idle} 
+                  textStyle={{color:'white'}}
+                  onPress={ ()=>{
+                      this.udp.close()
+                      Actions.server({}) 
+                  }}
+                >
+                  {I18n.t('task_start')}
+                </Button>
         </View>
         );
     }

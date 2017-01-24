@@ -5,21 +5,29 @@ import RNFS from 'react-native-fs';
 import I18n from 'react-native-i18n';
 import DeviceInfo from 'react-native-device-info'
 import styles from '../style'
+import NetworkInfo from 'react-native-network-info'
 
-export default class Group extends React.Component {
-	constructor(props) {
+export default class About extends React.Component {
+    constructor(props) {
         super(props);
         this.state={ 
             id:'',
+            ip:'127.0.0.1',
         }
-		this.file=null
+        this.file=null
     }
-	renderFeedback(){
+    componentWillMount() {
+        NetworkInfo.getIPAddress(ip => {
+            this.setState({ip})
+        });
+    }
+    //this.renderField(I18n.t('id'), this.state.id)
+    renderField(title,value){
         return (
             <View style={styles.detail_card} >
               <View style={{flexDirection:'row'}}>
-                  <Text style={{width:80,justifyContent: 'center',alignItems:'center',fontSize:16,fontWeight:'bold',color:'black'}}> {I18n.t('id')}: </Text>
-                  <Text style={{marginLeft:10,justifyContent:'center'}}>{this.state.id}</Text>
+                  <Text style={{width:80,justifyContent: 'center',alignItems:'center',fontSize:16,fontWeight:'bold',color:'black'}}> {title}: </Text>
+                  <Text style={{marginLeft:10,justifyContent:'center'}}>{value}</Text>
               </View>
             </View>
         )
@@ -54,6 +62,8 @@ export default class Group extends React.Component {
         return (
             <View style={styles.container}>
 			{this.renderIcon()}
+			{this.renderField(I18n.t('id'), this.state.id)}
+			{this.renderField(I18n.t('ip'), this.state.ip)}
 			{this.renderCopyright()}
             </View>
         );

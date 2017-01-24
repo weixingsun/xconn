@@ -3,6 +3,7 @@ import {Alert, AsyncStorage,Dimensions, Image, ListView, Platform, StyleSheet, T
 import {Actions} from "react-native-router-flux";
 import {DocumentPickerUtil,DocumentPicker} from "react-native-document-picker";
 import Icon from 'react-native-vector-icons/FontAwesome';
+import IIcon from 'react-native-vector-icons/Ionicons';
 import RNFS from 'react-native-fs';
 import alasql from '../sql/alasql.fs';
 import { Col, Row, Grid } from "react-native-easy-grid";
@@ -18,17 +19,12 @@ import DeviceInfo from 'react-native-device-info'
 import NetworkInfo from 'react-native-network-info'
 import Button from 'apsl-react-native-button'
 
-export default class Home extends React.Component {
+export default class Client extends React.Component {
     constructor(props) {
         super(props);
         this.ds= new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
         this.state={ 
-            task:{
-                running:false,
-                progress:0,
-                role:Const.ROLE.CLIENT,
-            },
-            servers:{}, //available to connect from client
+            running:true,
             my_server:'127.0.0.1',
             clients:{}, //available to connect from server
         }
@@ -45,11 +41,12 @@ export default class Home extends React.Component {
     }
     componentWillMount() {
         //this.getSqlDB()
-        this.updateWithActionIcon()
+        //this.updateWithActionIcon()
         //this.listenUDP()
         NetworkInfo.getIPAddress(ip => {
           this.ip=ip
         });
+        //alert('Client.componentWillMount')
     }
     componentWillReceiveProps(nextProps) {
         //nextProps={onNavigate,navigationState,name,sceneKey,parent,type,title,initial,drawerIcon,component,index,file,from}
@@ -226,31 +223,24 @@ export default class Home extends React.Component {
     }
     startTask(){
         this.setState({
-            task:{
-                running:true,
-                role:Const.ROLE.SERVER,
-            },
+            running:true,
         })
         http.start({
             port:this.HTTP_SERVER_PORT+'',
             root:'DOCS',
         })
         this.setupHbUdp()
-        
     }
     stopTask(){
         this.setState({
-            task:{
-                running:false,
-                role:Const.ROLE.CLIENT,
-            },
+            running:false,
         })
         http.stop()
         //this.udp.close()
         BackgroundTimer.clearInterval(this.heartbeat_id)
     }
     taskAction(){
-        if(this.state.task.running){
+        if(this.state.running){
             Alert.alert(
                 I18n.t("task"),
                 I18n.t("confirm_stop_task"),
@@ -266,8 +256,9 @@ export default class Home extends React.Component {
         }
     }
     _renderCircle() {
-        let src = this.state.task.running?require('./img/circle-red.png'):require('./img/radar0.png')
-        let animate = this.state.task.running?'pulse':'rotate'
+        let src = this.state.running?require('./img/circle-red.png'):require('./img/radar0.png')
+        let animate = this.state.running?'pulse':'rotate'
+        //IIcon name='ios-cog'
         return (
             <View style={styles.home_circle}>
                 <TouchableHighlight
@@ -286,8 +277,8 @@ export default class Home extends React.Component {
         );
     }
     render(){
-        let buttonText = this.state.task.running?I18n.t('task_stop'):I18n.t('task_start')
-        let buttonStyle= this.state.task.running?styles.button_running:styles.button_idle
+        let buttonText = this.state.running?I18n.t('task_stop'):I18n.t('task_start')
+        let buttonStyle= this.state.running?styles.button_running:styles.button_idle
         return (
         <View style={styles.content} >
             {this._renderCircle()}

@@ -17,20 +17,17 @@ import * as Animatable from 'react-native-animatable';
 import DeviceInfo from 'react-native-device-info'
 import NetworkInfo from 'react-native-network-info'
 import Button from 'apsl-react-native-button'
+import Base64 from '../hi-base64'
 
 export default class Server extends React.Component {
     constructor(props) {
         super(props);
         this.ds= new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
         this.state={ 
-            task:{
-                running:true,
-                progress:0,
-                role:Const.ROLE.SERVER,
-            },
+            running:true,
+            role:Const.ROLE.SERVER,
             clients:{}, //available to connect from server
         }
-        this.ip='127.0.0.1'
         this.renderMore=this.renderMore.bind(this)
         this.renderMoreOption=this.renderMoreOption.bind(this)
         this.chooseServer=this.chooseServer.bind(this)
@@ -45,9 +42,9 @@ export default class Server extends React.Component {
         this.updateWithActionIcon()
         this.startUDP()
         this.startHTTP()
-        this.setupHbUdp()
         NetworkInfo.getIPAddress(ip => {
-          this.ip=ip
+          this.myip=ip
+          this.setupHbUdp()
         });
     }
     /*ab2str16(buf) {
@@ -61,10 +58,10 @@ export default class Server extends React.Component {
       }
       return buf;
     }*/
-    ab2str8(buf) {
+    arr2str(buf) {
       return String.fromCharCode.apply(null, new Uint8Array(buf));
     }
-    str2ab8(obj) {
+    str2arr(obj) {
       var uint = new Uint8Array(obj.length);
       for (var i = 0, l = obj.length; i < l; i++){
         uint[i] = obj.charCodeAt(i);
@@ -91,8 +88,9 @@ export default class Server extends React.Component {
         });
         //receive
         this.udp.on('message', (data, rinfo)=>{
-            //let msg = data.toString() //b64.fromByteArray(data)
-            let strMsg = this.ab2str8(data)
+            let str64 = this.arr2str(data)
+            let strMsg = Base64.decode(str64)
+            //alert('recv msg: '+strMsg)
             let json = JSON.parse(strMsg)
             var clients = this.state.clients
             clients[json.ip]=json
@@ -110,14 +108,18 @@ export default class Server extends React.Component {
         this.heartbeat_id = BackgroundTimer.setInterval(() => {
             let json = {}
             json['cmd']=Const.CMD.HB
-            json['role']=this.state.task.role
-            json['ip']=this.ip
+            json['role']=this.state.role
+            json['ip']=this.myip
             json['name']=this.hostname
-            this.sendMsg('255.255.255.255',this.UDP_LISTEN_PORT,JSON.stringify(json))
+            let arr = this.myip.split('.')
+            let bcip = arr[0]+'.'+arr[1]+'.255.255'
+            //alert(bcip)
+            this.sendMsg(bcip,this.UDP_LISTEN_PORT,JSON.stringify(json))
         }, 10000);
     }
     sendMsg(host,port,msg){
-        var buf = this.str2ab8(msg)
+        let msg64 = Base64.encode(msg)
+        var buf = this.str2arr(msg64)
         this.udp.send(buf, 0, buf.length, port, host, (err)=>{
             if (err) throw err
             console.log('sent msg:'+msg)
@@ -167,6 +169,15 @@ export default class Server extends React.Component {
         if(value===''){
             //this.stopTask()
             this.taskAction()
+        }else if(value==='10.32.15.177'){
+            let json = {}
+            json['cmd']=Const.CMD.HB
+            json['role']=this.state.role
+            json['ip']=this.myip
+            json['name']=this.hostname
+            let arr = this.myip.split('.')
+            let bcip = arr[0]+'.'+arr[1]+'.255.255'
+            this.sendMsg('10.32.15.177',this.UDP_LISTEN_PORT,JSON.stringify(json))
         }else{
             this.gotoViewClient(value)
         }
@@ -185,6 +196,7 @@ export default class Server extends React.Component {
                 {Object.keys(this.state.clients).map((k,i)=>{
                     return this.renderMoreOption('',k,'folder-o')
                 })}
+                {this.renderMoreOption('add','10.32.15.177','plus')}
               </MenuOptions>
             </Menu>
           </View>
@@ -208,7 +220,7 @@ export default class Server extends React.Component {
         )
     }
     taskAction(){
-        if(this.state.task.running){
+        if(this.state.running){
             Alert.alert(
                 I18n.t("task"),
                 I18n.t("confirm_stop_task"),
@@ -224,8 +236,8 @@ export default class Server extends React.Component {
         }
     }
     _renderCircle() {
-        let src = this.state.task.running?require('./img/circle-red.png'):require('./img/radar0.png')
-        let animate = this.state.task.running?'pulse':'rotate'
+        let src = this.state.running?require('./img/circle-red.png'):require('./img/radar0.png')
+        let animate = this.state.running?'pulse':'rotate'
         return (
             <View style={styles.home_circle}>
                 <TouchableHighlight

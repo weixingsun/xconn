@@ -38,6 +38,7 @@ module.exports = {
     home:'首页',
     uuid:'唯一标识',
     id:'标识',
+    ip:'IP地址',
     hi: '你好',
     click_more: '点击查看',
     list: '列表',

@@ -80392,8 +80392,6 @@ _react2.default.createElement(_reactNative.View,{style:_style2.default.menu_titl
 _react2.default.createElement(_reactNative.Text,{style:_style2.default.menu_name},_reactNativeI18n2.default.t('menu'))),
 
 renderOneMenu(drawer,'folder',_reactNativeI18n2.default.t("open_file"),showFilePicker),
-renderOneMenu(drawer,'server',_reactNativeI18n2.default.t("task_start"),_reactNativeRouterFlux.Actions.server),
-renderOneMenu(drawer,'sign-in',_reactNativeI18n2.default.t("task_join"),_reactNativeRouterFlux.Actions.client),
 renderOneMenu(drawer,'eye',_reactNativeI18n2.default.t("overview"),_reactNativeRouterFlux.Actions.overview),
 renderOneMenu(drawer,'envelope',_reactNativeI18n2.default.t('feedback'),function(){return DoubleConfirmDialog(_reactNativeI18n2.default.t("feedback"),_reactNativeI18n2.default.t("confirm_feedback"),MailSender);}),
 renderOneMenu(drawer,'info-circle',_reactNativeI18n2.default.t("about"),_reactNativeRouterFlux.Actions.about)));

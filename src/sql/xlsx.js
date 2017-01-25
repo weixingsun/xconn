@@ -1770,8 +1770,8 @@ var make_offcrypto = function(O, _crypto) {
 	var crypto;
 	if(typeof _crypto !== 'undefined') crypto = _crypto;
 	else if(typeof require !== 'undefined') {
-		try { crypto = require('cry'+'pto'); }
-		catch(e) { crypto = null; }
+		//try { crypto = require('cry'+'pto'); }
+		//catch(e) { crypto = null; }
 	}
 
 	O.rc4 = function(key, data) {
@@ -11082,7 +11082,7 @@ var XLSRecordEnum = {
 
 /* Helper function to call out to ODS parser */
 function parse_ods(zip, opts) {
-	if(typeof module !== "undefined" && typeof require !== 'undefined' && typeof ODS === 'undefined') ODS = require('./od' + 's');
+	//if(typeof module !== "undefined" && typeof require !== 'undefined' && typeof ODS === 'undefined') ODS = require('./od' + 's');
 	if(typeof ODS === 'undefined' || !ODS.parse_ods) throw new Error("Unsupported ODS");
 	return ODS.parse_ods(zip, opts);
 }

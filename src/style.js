@@ -27,8 +27,8 @@ module.exports = {
         //flexDirection: 'column',
     },
     home_circle:{
-        width:256,
-        height:256,
+        width:200,
+        height:200,
         alignItems:'center',
         justifyContent:'center',
     },

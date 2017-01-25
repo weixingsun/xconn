@@ -4,6 +4,7 @@ import android.app.Application;
 import android.util.Log;
 
 import com.facebook.react.ReactApplication;
+import co.apptailor.Worker.BaseReactPackage;
 import com.pusherman.networkinfo.RNNetworkInfoPackage;
 import com.ocetnik.timer.BackgroundTimerPackage;
 import com.tradle.react.UdpSocketsModule;
@@ -34,6 +35,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new BaseReactPackage(),
             new RNNetworkInfoPackage(),
             new BackgroundTimerPackage(),
             new UdpSocketsModule(),

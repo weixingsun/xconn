@@ -16,7 +16,7 @@ module.exports = {
     task_stop:'Stop Task',
     task_join:'Join Task',
     task_editor:'Task Editor',
-    server:'Earth',
+    server:'Server',
     client:'Satellite',
     client_open:'View',
     overview:'System Overview',

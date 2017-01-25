@@ -1,23 +1,15 @@
 import React from 'react';
 import {Alert, AsyncStorage,Dimensions, Image, ListView, Platform, StyleSheet, Text, TouchableHighlight, View, } from "react-native";
 import {Actions} from "react-native-router-flux";
-import {DocumentPickerUtil,DocumentPicker} from "react-native-document-picker";
 import Icon from 'react-native-vector-icons/FontAwesome';
-import RNFS from 'react-native-fs';
-import alasql from '../sql/alasql.fs';
-import { Col, Row, Grid } from "react-native-easy-grid";
 import I18n from 'react-native-i18n';
 import Menu, { MenuContext, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 import styles from '../style'
 import Const from '../Const'
-import http from 'react-native-mongoose'
-import udp from 'react-native-udp'  //'dgram'
-import BackgroundTimer from 'react-native-background-timer';
+import Global from '../Global'
 import * as Animatable from 'react-native-animatable';
-import DeviceInfo from 'react-native-device-info'
-import NetworkInfo from 'react-native-network-info'
 import Button from 'apsl-react-native-button'
-import Base64 from '../hi-base64'
+import { Worker } from 'react-native-workers';
 
 export default class Home extends React.Component {
     constructor(props) {
@@ -27,95 +19,43 @@ export default class Home extends React.Component {
             listening:false,
             //server_menu_opened: false,
             servers:{}, //available to connect from client
-            //my_server:'127.0.0.1',
-            //clients:{}, //available to connect from server
         }
-        this.ip='127.0.0.1'
         this.renderMore=this.renderMore.bind(this)
         this.renderMoreOption=this.renderMoreOption.bind(this)
         this.chooseServer=this.chooseServer.bind(this)
         this.listenAction=this.listenAction.bind(this)
-        this.udp = null
-        this.HTTP_SERVER_PORT = 9999
-        this.UDP_LISTEN_PORT  = 9998
-        this.heartbeat_id = 0
-        this.hostname = DeviceInfo.getDeviceName()
     }
     componentWillMount() {
         this.updateWithActionIcon()
-        //this.listenUDP()
-        NetworkInfo.getIPAddress(ip => {
-          this.ip=ip
-        });
-    }
-    arr2str(buf) {
-      return String.fromCharCode.apply(null, new Uint8Array(buf));
-    }
-    str2arr(obj) {
-      var uint = new Uint8Array(obj.length);
-      for (var i = 0, l = obj.length; i < l; i++){
-        uint[i] = obj.charCodeAt(i);
-      }
-      return new Uint8Array(uint);
-    }
-    listenUDP(){
-        console.log('listenUDP')
-        this.udp = udp.createSocket('udp4')
-        this.udp.bind(this.UDP_LISTEN_PORT, (err)=>{
-            if (err) throw err;
-            this.udp.setBroadcast(true);
-        });
-        //receive
-        this.udp.on('message', (data, rinfo)=>{
-            //let msg = data.toString() //b64.fromByteArray(data)
-            let str64 = this.arr2str(data)
-            let strMsg = Base64.decode(str64)
-            //alert(strMsg)
-            let json = JSON.parse(strMsg)
-            var servers = this.state.servers
-            servers[json.ip]=json
-            this.setState({
-                servers
-            })
-            //console.warn('received msg:'+msg)
-            this.updateWithActionIcon()
-        })
-        //ready
-        this.udp.once('listening', ()=>{
-        })
-    }
-    getFileInfo(filePath){
-        //filename.replace('%3A',':').replace('%2F','/')
-        let lastIdx = filePath.lastIndexOf('/')
-        let file = filePath.substr(lastIdx+1)
-        let folder = filePath.substr(0,lastIdx)
-        let dotIdx = file.lastIndexOf('.')
-        let fileNoExt = file.substr(0,dotIdx)
-        let ext = file.substr(dotIdx+1)
-        return {
-            dir:folder,
-            name:file,
-            ext:ext,
-            noext:fileNoExt,
-            full:filePath,
+        Global.threads.http = new Worker('thread_http.js');
+        Global.threads.udp  = new Worker('thread_udp.js');
+        Global.threads.udp.onmessage = (message) => {
+          //alert("Home page msg from udp:"+ message);
+          if(message.indexOf('{')>-1 && this.updateUI===true){
+              let msg = JSON.parse(message).body
+              let arr = this.state.servers
+              arr[msg.ip]=msg
+              this.setState({
+                  servers:arr
+              })
+              this.updateWithActionIcon()
+          }
         }
+        this.updateUI=true
+    }
+    componentWillUnmount(){
+        //this.stopAll()
+        this.updateUI=false
     }
     updateWithActionIcon(){
         Actions.refresh({
             key:'home',
-            //title:this.file.name,
-            //renderRightButton: ()=> <Icon name={'play'} size={20} color={'#333'} onPress={()=>  } />,
             renderRightButton: this.renderMore,
-            //content:content,
-            file:null,
         });
     }
     chooseServer(value){
-        //if(value==='') Actions.sql_add({})
-        //else Actions.result({file:this.file.full,sql:value})
-        //alert(JSON.stringify(this.state.servers[value]))
-        this.stopListen()
         if(value===''){
+            //this.changeRole(true)
             Actions.server({})
         }else {
             Actions.client({server:this.state.servers[value]})
@@ -131,9 +71,9 @@ export default class Home extends React.Component {
                 </Text>
               </MenuTrigger>
               <MenuOptions>
-                {this.renderMoreOption('add','','plus')}
+                {this.renderMoreOption('task_start','','plus')}
                 {Object.keys(this.state.servers).map((k,i)=>{
-                    return this.renderMoreOption('',k,'play')
+                    return this.renderMoreOption('task_join',k,'play')
                 })}
               </MenuOptions>
             </Menu>
@@ -142,8 +82,7 @@ export default class Home extends React.Component {
     }
     renderMoreOption(act,value,icon){
         //style={{backgroundColor:'white'}}
-        let title=I18n.t('task_join')+' '+value
-        if(act==='add') title=I18n.t('task_start')+' '+value
+        let title=I18n.t(act)+' '+value
         return (
             <MenuOption value={value} key={value} style={{padding:1}}>
                 <View style={{flexDirection:'row',height:40,backgroundColor:'#494949'}}>
@@ -177,13 +116,18 @@ export default class Home extends React.Component {
         this.setState({
             listening:true
         })
-        this.listenUDP()
+        Global.threads.udp.postMessage("start");
     }
     stopListen(){
         this.setState({
             listening:false
         })
-        if(this.udp)this.udp.close()
+        Global.threads.udp.postMessage("stop");
+    }
+    changeRole(server){
+        if(server) role=Const.ROLE.SERVER
+        else role=Const.ROLE.CLIENT
+        Global.threads.udp.postMessage("role:"+role);
     }
     _renderCircle() {
         let animate = this.state.listening?'rotate':null
@@ -211,7 +155,7 @@ export default class Home extends React.Component {
                   style={styles.button_idle} 
                   textStyle={{color:'white'}}
                   onPress={ ()=>{
-                      this.stopListen()
+                      //this.changeRole(true)
                       Actions.server({}) 
                   }}
                 >

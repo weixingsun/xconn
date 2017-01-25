@@ -4,9 +4,8 @@ import {Actions} from "react-native-router-flux";
 import {DocumentPickerUtil,DocumentPicker} from "react-native-document-picker";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import IIcon from 'react-native-vector-icons/Ionicons';
-import RNFS from 'react-native-fs';
-import alasql from '../sql/alasql.fs';
-import { Col, Row, Grid } from "react-native-easy-grid";
+//import RNFS from 'react-native-fs';
+//import { Col, Row, Grid } from "react-native-easy-grid";
 import I18n from 'react-native-i18n';
 import Menu, { MenuContext, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 import styles from '../style'
@@ -42,12 +41,16 @@ export default class Client extends React.Component {
     componentWillMount() {
         //this.getSqlDB()
         //this.updateWithActionIcon()
-        //this.listenUDP()
+        this.startAll()
         NetworkInfo.getIPAddress(ip => {
           this.ip=ip
         });
         //alert('Client.componentWillMount')
     }
+    componentWillUnmount(){
+        this.stopAll()
+    }
+    //netmask = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)temp_addr->ifa_netmask)->sin_addr)];
     componentWillReceiveProps(nextProps) {
         //nextProps={onNavigate,navigationState,name,sceneKey,parent,type,title,initial,drawerIcon,component,index,file,from}
         //alert('componentWillReceiveProps: file'+JSON.stringify(nextProps.file))
@@ -118,7 +121,7 @@ export default class Client extends React.Component {
         this.heartbeat_id = BackgroundTimer.setInterval(() => {
             let json = {}
             json['cmd']=Const.CMD.HB
-            json['role']=this.state.task.role
+            json['role']=this.state.role
             json['ip']=this.ip
             json['name']=this.hostname
             this.sendMsg('255.255.255.255',this.UDP_LISTEN_PORT,JSON.stringify(json))
@@ -131,45 +134,6 @@ export default class Client extends React.Component {
             console.log('sent msg:'+msg)
         })
     }
-    getFileInfo(filePath){
-        //filename.replace('%3A',':').replace('%2F','/')
-        let lastIdx = filePath.lastIndexOf('/')
-        let file = filePath.substr(lastIdx+1)
-        let folder = filePath.substr(0,lastIdx)
-        let dotIdx = file.lastIndexOf('.')
-        let fileNoExt = file.substr(0,dotIdx)
-        let ext = file.substr(dotIdx+1)
-        return {
-            dir:folder,
-            name:file,
-            ext:ext,
-            noext:fileNoExt,
-            full:filePath,
-        }
-    }
-    /*readFile(filePath){
-        this.file = this.getFileInfo(filePath)
-        //alert(this.file.ext)
-        if(this.file.ext==='csv'||this.file.ext==='xls'||this.file.ext==='xlsx'){
-            this.readExcel(this.file)
-        }
-    }
-    readExcel(file){
-        //var sql = 'SELECT * from csv("'+file.full+'",{headers:true}) '
-        var sql = 'SELECT * from '+file.ext+'("'+file.full+'") '
-        //alert('sql='+sql)
-        //this.updateWithActionIcon()
-        alasql(sql,[],(result)=>{
-            //alert('alasql.select * '+JSON.stringify(result))
-            this.updateWithActionIcon()
-            this.setState({
-                lines:result,
-            })
-            //let sql2 = 'SELECT * INTO csv("'+this.file.dir+'/test2.csv",{headers:true,separator:","}) FROM ?'
-            //alert('sql2='+sql2)
-            //alasql(sql2, [result]);
-        })
-    }*/
     updateWithActionIcon(){
         Actions.refresh({
             key:'home',
@@ -221,7 +185,7 @@ export default class Client extends React.Component {
             </MenuOption>
         )
     }
-    startTask(){
+    startAll(){
         this.setState({
             running:true,
         })
@@ -231,13 +195,13 @@ export default class Client extends React.Component {
         })
         this.setupHbUdp()
     }
-    stopTask(){
+    stopAll(){
+        if(this.state.running) http.stop()
+        if(this.udp) this.udp.close()
+        BackgroundTimer.clearInterval(this.heartbeat_id)
         this.setState({
             running:false,
         })
-        http.stop()
-        //this.udp.close()
-        BackgroundTimer.clearInterval(this.heartbeat_id)
     }
     taskAction(){
         if(this.state.running){
@@ -247,31 +211,33 @@ export default class Client extends React.Component {
                 [
                     {text:I18n.t("no"), },
                     {text:I18n.t('yes'), onPress:()=>{
-                        this.stopTask()
+                        this.stopAll()
+                        Actions.pop()
                     }},
                 ]
             );
         }else{ 
-            this.startTask()
+            this.startAll()
         }
     }
     _renderCircle() {
-        let src = this.state.running?require('./img/circle-red.png'):require('./img/radar0.png')
-        let animate = this.state.running?'pulse':'rotate'
-        //IIcon name='ios-cog'
+        //let src = this.state.running?require('./img/circle-red.png'):require('./img/radar0.png')
+        let animate = this.state.running?'rotate':null
         return (
             <View style={styles.home_circle}>
                 <TouchableHighlight
                     underlayColor={'white'}
                     onPress={this.taskAction}>
-                <Animatable.Image
+                <Animatable.View
                     animation={animate} //pulse,rotate,bounce,flash,rubberBand,shake,swing,tada,wobble,zoomIn,zoomOut
                     duration={3000}
                     easing="linear"
                     iterationCount="infinite"
                     style={styles.home_circle}
-                    source={src}
-                />
+                    //source={src}
+                >
+                    <IIcon name='md-settings' size={200}/>
+                </Animatable.View>
                 </TouchableHighlight>   
             </View>
         );

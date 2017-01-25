@@ -126,6 +126,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-workers')
     compile project(':react-native-network-info')
     compile project(':react-native-background-timer')
     compile project(':react-native-udp')

@@ -3,21 +3,15 @@ import {Alert, AsyncStorage,Dimensions, Image, ListView, Platform, StyleSheet, T
 import {Actions} from "react-native-router-flux";
 import {DocumentPickerUtil,DocumentPicker} from "react-native-document-picker";
 import Icon from 'react-native-vector-icons/FontAwesome';
-import RNFS from 'react-native-fs';
-import alasql from '../sql/alasql.fs';
-import { Col, Row, Grid } from "react-native-easy-grid";
+import IIcon from 'react-native-vector-icons/Ionicons';
 import I18n from 'react-native-i18n';
 import Menu, { MenuContext, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 import styles from '../style'
 import Const from '../Const'
-import http from 'react-native-mongoose'
-import udp from 'react-native-udp'  //'dgram'
-import BackgroundTimer from 'react-native-background-timer';
+import Global from '../Global'
 import * as Animatable from 'react-native-animatable';
-import DeviceInfo from 'react-native-device-info'
-import NetworkInfo from 'react-native-network-info'
 import Button from 'apsl-react-native-button'
-import Base64 from '../hi-base64'
+import DeviceInfo from 'react-native-device-info'
 
 export default class Server extends React.Component {
     constructor(props) {
@@ -30,100 +24,49 @@ export default class Server extends React.Component {
         }
         this.renderMore=this.renderMore.bind(this)
         this.renderMoreOption=this.renderMoreOption.bind(this)
-        this.chooseServer=this.chooseServer.bind(this)
+        this.chooseClient=this.chooseClient.bind(this)
         this.taskAction=this.taskAction.bind(this)
-        this.udp = null
-        this.HTTP_SERVER_PORT = 9999
-        this.UDP_LISTEN_PORT  = 9998
-        this.heartbeat_id = 0
-        this.hostname = DeviceInfo.getDeviceName()
     }
     componentWillMount() {
         this.updateWithActionIcon()
-        this.startUDP()
         this.startHTTP()
-        NetworkInfo.getIPAddress(ip => {
-          this.myip=ip
-          this.setupHbUdp()
-        });
+        this.updateUI=true
+        //NetworkInfo.getIPAddress(ip => {
+        //  this.myip=ip
+        //  this.setupHbUdp()
+        //});
     }
-    /*ab2str16(buf) {
-      return String.fromCharCode.apply(null, new Uint16Array(buf));
-    }
-    str2ab16(str) {
-      var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
-      var bufView = new Uint16Array(buf);
-      for (var i=0, strLen=str.length; i<strLen; i++) {
-        bufView[i] = str.charCodeAt(i);
-      }
-      return buf;
-    }*/
-    arr2str(buf) {
-      return String.fromCharCode.apply(null, new Uint8Array(buf));
-    }
-    str2arr(obj) {
-      var uint = new Uint8Array(obj.length);
-      for (var i = 0, l = obj.length; i < l; i++){
-        uint[i] = obj.charCodeAt(i);
-      }
-      return new Uint8Array(uint);
+    componentWillUnmount(){
+        //this.stopAll()
+        this.updateUI=false
     }
     startHTTP(){
-        http.start({
-            port:this.HTTP_SERVER_PORT+'',
-            root:'DOCS',
-        })
+        //http.start({
+        //    port:this.HTTP_SERVER_PORT+'',
+        //    root:'DOCS',
+        //})
+        Global.threads.http.postMessage("start");
+        Global.threads.udp.postMessage("role:"+Const.ROLE.SERVER);
+        Global.threads.udp.onmessage = (message) => {
+          //alert('server recv msg: '+message);
+          if(message.indexOf('{')>-1 && this.updateUI===true){
+              let msg = JSON.parse(message).body
+              let arr = this.state.clients
+              arr[msg.ip]=msg
+              this.setState({
+                  clients:arr
+              })
+              this.updateWithActionIcon()
+          }
+        }
     }
-    stopTask(){
-        http.stop()
-        this.udp.close()
-        BackgroundTimer.clearInterval(this.heartbeat_id)
-        Actions.pop()
-    }
-    startUDP(){
-        this.udp = udp.createSocket('udp4')
-        this.udp.bind(this.UDP_LISTEN_PORT, (err)=>{
-            if (err) throw err;
-            this.udp.setBroadcast(true);
-        });
-        //receive
-        this.udp.on('message', (data, rinfo)=>{
-            let str64 = this.arr2str(data)
-            let strMsg = Base64.decode(str64)
-            //alert('recv msg: '+strMsg)
-            let json = JSON.parse(strMsg)
-            var clients = this.state.clients
-            clients[json.ip]=json
-            this.setState({
-                clients
-            })
-            this.updateWithActionIcon()
-        })
-        //ready
-        this.udp.once('listening', ()=>{
-            //this.sendMsg('255.255.255.255',this.UDP_LISTEN_PORT,'ON')
-        })
-    }
-    setupHbUdp(){
-        this.heartbeat_id = BackgroundTimer.setInterval(() => {
-            let json = {}
-            json['cmd']=Const.CMD.HB
-            json['role']=this.state.role
-            json['ip']=this.myip
-            json['name']=this.hostname
-            let arr = this.myip.split('.')
-            let bcip = arr[0]+'.'+arr[1]+'.255.255'
-            //alert(bcip)
-            this.sendMsg(bcip,this.UDP_LISTEN_PORT,JSON.stringify(json))
-        }, 10000);
-    }
-    sendMsg(host,port,msg){
-        let msg64 = Base64.encode(msg)
-        var buf = this.str2arr(msg64)
-        this.udp.send(buf, 0, buf.length, port, host, (err)=>{
-            if (err) throw err
-            console.log('sent msg:'+msg)
-        })
+    stopAll(){
+        //if(this.state.running) http.stop()
+        //if(this.udp) this.udp.close()
+        //BackgroundTimer.clearInterval(this.heartbeat_id)
+        //Actions.pop()
+        Global.threads.udp.postMessage("role:"+Const.ROLE.CLIENT);
+        Global.threads.http.postMessage("stop");
     }
     gotoViewClient(ip){
         alert(ip)
@@ -148,7 +91,7 @@ export default class Server extends React.Component {
     updateWithActionIcon(){
         Actions.refresh({
             key:'server',
-            title:I18n.t('server')+': '+this.hostname,
+            title:I18n.t('server')+': '+DeviceInfo.getDeviceName(),
             //renderRightButton: ()=> <Icon name={'play'} size={20} color={'#333'} onPress={()=>  } />,
             renderRightButton: this.renderMore,
             renderLeftButton:  null,
@@ -162,47 +105,47 @@ export default class Server extends React.Component {
         </TouchableHighlight>
       )
     }
-    chooseServer(value){
+    chooseClient(value){
         //if(value==='') Actions.sql_add({})
         //else Actions.result({file:this.file.full,sql:value})
         //alert('value='+value+'\n'+JSON.stringify(this.state.clients[value]))
         if(value===''){
-            //this.stopTask()
-            this.taskAction()
+            this.stopAll()
         }else if(value==='10.32.15.177'){
             let json = {}
             json['cmd']=Const.CMD.HB
             json['role']=this.state.role
             json['ip']=this.myip
-            json['name']=this.hostname
+            json['name']=DeviceInfo.getDeviceName()
             let arr = this.myip.split('.')
             let bcip = arr[0]+'.'+arr[1]+'.255.255'
-            this.sendMsg('10.32.15.177',this.UDP_LISTEN_PORT,JSON.stringify(json))
+            this.sendMsg(value,this.UDP_LISTEN_PORT,JSON.stringify(json))
         }else{
             this.gotoViewClient(value)
         }
     }
     renderMore(){
+        //{this.renderMoreOption('add','10.32.15.177','plus')}
+        //{this.renderMoreOption('stop','','minus-circle')}
         return (
           <View style={{ flex:1 }}>
-            <Menu onSelect={(value) => this.chooseServer(value) }>
+            <Menu onSelect={(value) => this.chooseClient(value) }>
               <MenuTrigger>
                 <Text style={styles.right_icon}>
                   {Object.keys(this.state.clients).length} <Icon name="caret-down" size={15}/>
                 </Text>
               </MenuTrigger>
               <MenuOptions>
-                {this.renderMoreOption('stop','','minus-circle')}
                 {Object.keys(this.state.clients).map((k,i)=>{
-                    return this.renderMoreOption('',k,'folder-o')
+                    return this.renderMoreOption('',k,this.state.clients[k].mfg)
                 })}
-                {this.renderMoreOption('add','10.32.15.177','plus')}
               </MenuOptions>
             </Menu>
           </View>
         )
     }
     renderMoreOption(act,value,icon){
+        let ticon=icon==='Apple'?'apple':'android'
         //style={{backgroundColor:'white'}}
         let title=I18n.t('client_open')+' '+value
         if(act==='stop') title=I18n.t('task_stop')
@@ -210,7 +153,7 @@ export default class Server extends React.Component {
             <MenuOption value={value} key={value} style={{padding:1}}>
                 <View style={{flexDirection:'row',height:40,backgroundColor:'#494949'}}>
                     <View style={{width:30,justifyContent:'center'}}>
-                        <Icon name={icon} color={'white'} size={16} style={{marginLeft:10}}/>
+                        <Icon name={ticon} color={'white'} size={16} style={{marginLeft:10}}/>
                     </View>
                     <View style={{justifyContent:'center'}}>
                         <Text style={{color:'white'}}>{title}</Text>
@@ -227,7 +170,8 @@ export default class Server extends React.Component {
                 [
                     {text:I18n.t("no"), },
                     {text:I18n.t('yes'), onPress:()=>{
-                        this.stopTask()
+                        this.stopAll()
+                        Actions.pop()
                     }},
                 ]
             );
@@ -236,21 +180,23 @@ export default class Server extends React.Component {
         }
     }
     _renderCircle() {
-        let src = this.state.running?require('./img/circle-red.png'):require('./img/radar0.png')
-        let animate = this.state.running?'pulse':'rotate'
+        //let src = this.state.running?require('./img/circle-red.png'):require('./img/radar0.png')
+        let animate = this.state.running?'rotate':null
         return (
             <View style={styles.home_circle}>
                 <TouchableHighlight
                     underlayColor={'white'}
                     onPress={this.taskAction}>
-                <Animatable.Image
+                <Animatable.View
                     animation={animate} //pulse,rotate,bounce,flash,rubberBand,shake,swing,tada,wobble,zoomIn,zoomOut
                     duration={3000}
                     easing="linear"
                     iterationCount="infinite"
                     style={styles.home_circle}
-                    source={src}
-                />
+                    //source={src}
+                >
+                    <IIcon name='ios-cog' size={200}/>
+                </Animatable.View>
                 </TouchableHighlight>   
             </View>
         );

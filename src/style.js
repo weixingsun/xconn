@@ -22,6 +22,14 @@ module.exports = {
         alignItems:'center',
         justifyContent:'center',
     },
+    web:{
+        flex: 1,
+        backgroundColor: "#F5FCFF",
+        marginTop:Platform.select({
+                ios: 64,
+                android: 54,
+        }),
+    },
     listContainer: {
         flex: 1,
         //flexDirection: 'column',

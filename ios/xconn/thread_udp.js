@@ -69653,7 +69653,11 @@ ULD:'ULD'},
 
 ROLE:{
 CLIENT:'c',
-SERVER:'s'}};
+SERVER:'s'},
+
+PORT:{
+HTTP:9999,
+UDP:9998}};
 }, 413, null, "xconn/src/Const.js");
 ;require(215);
 ;require(0);

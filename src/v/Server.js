@@ -41,14 +41,9 @@ export default class Server extends React.Component {
         this.updateUI=false
     }
     startHTTP(){
-        //http.start({
-        //    port:this.HTTP_SERVER_PORT+'',
-        //    root:'DOCS',
-        //})
         Global.threads.http.postMessage("start");
         Global.threads.udp.postMessage("role:"+Const.ROLE.SERVER);
         Global.threads.udp.onmessage = (message) => {
-          //alert('server recv msg: '+message);
           if(message.indexOf('{')>-1 && this.updateUI===true){
               let msg = JSON.parse(message).body
               let arr = this.state.clients
@@ -61,15 +56,14 @@ export default class Server extends React.Component {
         }
     }
     stopAll(){
-        //if(this.state.running) http.stop()
-        //if(this.udp) this.udp.close()
-        //BackgroundTimer.clearInterval(this.heartbeat_id)
         //Actions.pop()
         Global.threads.udp.postMessage("role:"+Const.ROLE.CLIENT);
         Global.threads.http.postMessage("stop");
     }
     gotoViewClient(ip){
-        alert(ip)
+        this.updateUI=false
+        let url = 'http://'+ip+':'+Const.PORT.HTTP
+        Actions.web({url})
         //Actions.client_view({ip:ip})
     }
     /*getFileInfo(filePath){

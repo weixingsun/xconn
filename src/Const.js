@@ -19,4 +19,8 @@ module.exports = {
     CLIENT:'c',
     SERVER:'s',
   },
+  PORT:{
+    HTTP:9999,
+    UDP:9998,
+  },
 }

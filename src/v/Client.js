@@ -12,7 +12,7 @@ import styles from '../style'
 import Const from '../Const'
 import http from 'react-native-mongoose'
 import udp from 'react-native-udp'  //'dgram'
-import BackgroundTimer from 'react-native-background-timer';
+//import BackgroundTimer from 'react-native-background-timer';
 import * as Animatable from 'react-native-animatable';
 import DeviceInfo from 'react-native-device-info'
 import NetworkInfo from 'react-native-network-info'
@@ -32,23 +32,19 @@ export default class Client extends React.Component {
         this.renderMoreOption=this.renderMoreOption.bind(this)
         this.chooseServer=this.chooseServer.bind(this)
         this.taskAction=this.taskAction.bind(this)
-        this.udp = null
-        this.HTTP_SERVER_PORT = 9999
-        this.UDP_LISTEN_PORT  = 9998
-        this.heartbeat_id = 0
         this.hostname = DeviceInfo.getDeviceName()
     }
     componentWillMount() {
         //this.getSqlDB()
         //this.updateWithActionIcon()
-        this.startAll()
-        NetworkInfo.getIPAddress(ip => {
-          this.ip=ip
-        });
+        //this.startAll()
+        //NetworkInfo.getIPAddress(ip => {
+        //  this.ip=ip
+        //});
         //alert('Client.componentWillMount')
     }
     componentWillUnmount(){
-        this.stopAll()
+        //this.stopAll()
     }
     //netmask = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)temp_addr->ifa_netmask)->sin_addr)];
     componentWillReceiveProps(nextProps) {

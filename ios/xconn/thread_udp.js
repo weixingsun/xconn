@@ -1618,7 +1618,8 @@ if(msg.startsWith('role:'))changeRole(msg);
 
 function loop(){
 
-if(_reactNativeWorkers.self.role===_Const2.default.ROLE.SERVER)sendMsg(_reactNativeWorkers.self.bcip,_reactNativeWorkers.self.PORT,JSON.stringify(_reactNativeWorkers.self.pkt));
+var toip=_reactNativeWorkers.self.mask==null?'255.255.255.255':_reactNativeWorkers.self.mask;
+if(_reactNativeWorkers.self.role===_Const2.default.ROLE.SERVER)sendMsg(toip,_reactNativeWorkers.self.PORT,JSON.stringify(_reactNativeWorkers.self.pkt));
 setTimeout(loop,5000);
 }
 function changeRole(msg){
@@ -1681,6 +1682,10 @@ _reactNativeNetworkInfo2.default.getIPAddress(function(ip){
 _reactNativeWorkers.self.myip=ip;
 wrapHbPkt();
 });
+_reactNativeNetworkInfo2.default.getRouterIPAddress(function(router_ip){
+_reactNativeWorkers.self.mask=router_ip.replace(/254/g,"255");
+
+});
 _reactNativeWorkers.self.postMessage("udp startBroadcast");
 _reactNativeWorkers.self.broadcasting=true;
 }
@@ -1697,8 +1702,9 @@ name:_reactNativeWorkers.self.name,
 mfg:_reactNativeWorkers.self.mfg};
 
 
-var arr=_reactNativeWorkers.self.myip.split('.');
-_reactNativeWorkers.self.bcip=arr[0]+'.'+arr[1]+'.'+arr[2]+'.255';
+
+
+
 }
 function sendMsg(host,port,msg){
 if(_reactNativeWorkers.self.socket!=null){
@@ -69221,6 +69227,10 @@ RNNetworkInfo.getSSID(ssid);
 
 getIPAddress:function getIPAddress(ip){
 RNNetworkInfo.getIPAddress(ip);
+},
+
+getRouterIPAddress:function getRouterIPAddress(ip){
+RNNetworkInfo.getRouterIPAddress(ip);
 },
 
 ping:function ping(url,found){

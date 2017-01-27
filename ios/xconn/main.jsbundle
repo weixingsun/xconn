@@ -68195,10 +68195,10 @@ var _Menu=require(618 /* ./v/Menu */);var _Menu2=babelHelpers.interopRequireDefa
 var _Home=require(623 /* ./v/Home */);var _Home2=babelHelpers.interopRequireDefault(_Home);
 var _Server=require(667 /* ./v/Server */);var _Server2=babelHelpers.interopRequireDefault(_Server);
 var _Client=require(671 /* ./v/Client */);var _Client2=babelHelpers.interopRequireDefault(_Client);
-var _About=require(681 /* ./v/About */);var _About2=babelHelpers.interopRequireDefault(_About);
-var _Web=require(686 /* ./v/Web */);var _Web2=babelHelpers.interopRequireDefault(_Web);
-var _FormModal=require(687 /* ./v/FormModal */);var _FormModal2=babelHelpers.interopRequireDefault(_FormModal);
-var _all=require(688 /* ./lang/all */);var _all2=babelHelpers.interopRequireDefault(_all);
+var _About=require(680 /* ./v/About */);var _About2=babelHelpers.interopRequireDefault(_About);
+var _Web=require(685 /* ./v/Web */);var _Web2=babelHelpers.interopRequireDefault(_Web);
+var _FormModal=require(686 /* ./v/FormModal */);var _FormModal2=babelHelpers.interopRequireDefault(_FormModal);
+var _all=require(687 /* ./lang/all */);var _all2=babelHelpers.interopRequireDefault(_all);
 var _reactNativeI18n=require(620 /* react-native-i18n */);var _reactNativeI18n2=babelHelpers.interopRequireDefault(_reactNativeI18n);
 var _reactNativePopupMenu=require(624 /* react-native-popup-menu */);
 var _style=require(622 /* ./style */);var _style2=babelHelpers.interopRequireDefault(_style);
@@ -86253,6 +86253,7 @@ _Global2.default.threads.udp.postMessage("role:"+_Const2.default.ROLE.SERVER);
 _Global2.default.threads.udp.onmessage=function(message){
 if(message.indexOf('{')>-1&&_this2.updateUI===true){
 var msg=JSON.parse(message).body;
+if(msg.role===_Const2.default.ROLE.SERVER&&msg.name!==_reactNativeDeviceInfo2.default.getDeviceName())return;
 var arr=_this2.state.clients;
 arr[msg.ip]=msg;
 _this2.setState({
@@ -86348,7 +86349,7 @@ return _this3.renderMoreOption('',k,_this3.state.clients[k].mfg);
 act,value,icon){
 var ticon=icon==='Apple'?'apple':'android';
 
-var title=_reactNativeI18n2.default.t('client_open')+' '+value;
+var title=_reactNativeI18n2.default.t('client_open')+' '+this.state.clients[value].name;
 if(act==='stop')title=_reactNativeI18n2.default.t('task_stop');
 return(
 _react2.default.createElement(_reactNativePopupMenu.MenuOption,{value:value,key:value,style:{padding:1}},
@@ -87451,10 +87452,10 @@ var _style=require(622 /* ../style */);var _style2=babelHelpers.interopRequireDe
 var _Const=require(638 /* ../Const */);var _Const2=babelHelpers.interopRequireDefault(_Const);
 var _reactNativeMongoose=require(672 /* react-native-mongoose */);var _reactNativeMongoose2=babelHelpers.interopRequireDefault(_reactNativeMongoose);
 var _reactNativeUdp=require(673 /* react-native-udp */);var _reactNativeUdp2=babelHelpers.interopRequireDefault(_reactNativeUdp);
-var _reactNativeBackgroundTimer=require(679 /* react-native-background-timer */);var _reactNativeBackgroundTimer2=babelHelpers.interopRequireDefault(_reactNativeBackgroundTimer);
+
 var _reactNativeAnimatable=require(640 /* react-native-animatable */);var Animatable=babelHelpers.interopRequireWildcard(_reactNativeAnimatable);
 var _reactNativeDeviceInfo=require(670 /* react-native-device-info */);var _reactNativeDeviceInfo2=babelHelpers.interopRequireDefault(_reactNativeDeviceInfo);
-var _reactNativeNetworkInfo=require(680 /* react-native-network-info */);var _reactNativeNetworkInfo2=babelHelpers.interopRequireDefault(_reactNativeNetworkInfo);
+var _reactNativeNetworkInfo=require(679 /* react-native-network-info */);var _reactNativeNetworkInfo2=babelHelpers.interopRequireDefault(_reactNativeNetworkInfo);
 var _apslReactNativeButton=require(661 /* apsl-react-native-button */);var _apslReactNativeButton2=babelHelpers.interopRequireDefault(_apslReactNativeButton);var
 
 Client=function(_React$Component){babelHelpers.inherits(Client,_React$Component);
@@ -87471,23 +87472,19 @@ _this.renderMore=_this.renderMore.bind(_this);
 _this.renderMoreOption=_this.renderMoreOption.bind(_this);
 _this.chooseServer=_this.chooseServer.bind(_this);
 _this.taskAction=_this.taskAction.bind(_this);
-_this.udp=null;
-_this.HTTP_SERVER_PORT=9999;
-_this.UDP_LISTEN_PORT=9998;
-_this.heartbeat_id=0;
 _this.hostname=_reactNativeDeviceInfo2.default.getDeviceName();return _this;
 }babelHelpers.createClass(Client,[{key:"componentWillMount",value:function componentWillMount()
-{var _this2=this;
+{
 
 
-this.startAll();
-_reactNativeNetworkInfo2.default.getIPAddress(function(ip){
-_this2.ip=ip;
-});
+
+
+
+
 
 }},{key:"componentWillUnmount",value:function componentWillUnmount()
 {
-this.stopAll();
+
 }},{key:"componentWillReceiveProps",value:function componentWillReceiveProps(
 
 nextProps){
@@ -87502,10 +87499,10 @@ nextProps){
 
 
 }},{key:"getSqlDB",value:function getSqlDB()
-{var _this3=this;
+{var _this2=this;
 _reactNative.AsyncStorage.getItem('sqls').then(function(value){
 if(value){
-_this3.setState({
+_this2.setState({
 sqls:JSON.parse(value)});
 
 }
@@ -87532,38 +87529,38 @@ uint[i]=obj.charCodeAt(i);
 }
 return new Uint8Array(uint);
 }},{key:"listenUDP",value:function listenUDP()
-{var _this4=this;
+{var _this3=this;
 this.udp=_reactNativeUdp2.default.createSocket('udp4');
 this.udp.bind(this.UDP_LISTEN_PORT,function(err){
 if(err)throw err;
-_this4.udp.setBroadcast(true);
+_this3.udp.setBroadcast(true);
 });
 
 this.udp.on('message',function(data,rinfo){
 
-var strMsg=_this4.ab2str8(data);
+var strMsg=_this3.ab2str8(data);
 var json=JSON.parse(strMsg);
-var servers=_this4.state.servers;
+var servers=_this3.state.servers;
 servers[json.ip]=json;
-_this4.setState({
+_this3.setState({
 servers:servers});
 
 
-_this4.updateWithActionIcon();
+_this3.updateWithActionIcon();
 });
 
 this.udp.once('listening',function(){
 
 });
 }},{key:"setupHbUdp",value:function setupHbUdp()
-{var _this5=this;
-this.heartbeat_id=_reactNativeBackgroundTimer2.default.setInterval(function(){
+{var _this4=this;
+this.heartbeat_id=BackgroundTimer.setInterval(function(){
 var json={};
 json['cmd']=_Const2.default.CMD.HB;
-json['role']=_this5.state.role;
-json['ip']=_this5.ip;
-json['name']=_this5.hostname;
-_this5.sendMsg('255.255.255.255',_this5.UDP_LISTEN_PORT,JSON.stringify(json));
+json['role']=_this4.state.role;
+json['ip']=_this4.ip;
+json['name']=_this4.hostname;
+_this4.sendMsg('255.255.255.255',_this4.UDP_LISTEN_PORT,JSON.stringify(json));
 },10000);
 }},{key:"sendMsg",value:function sendMsg(
 host,port,msg){
@@ -87588,10 +87585,10 @@ value){
 
 alert(JSON.stringify(this.state.servers[value]));
 }},{key:"renderMore",value:function renderMore()
-{var _this6=this;
+{var _this5=this;
 return(
 _react2.default.createElement(_reactNative.View,{style:{flex:1}},
-_react2.default.createElement(_reactNativePopupMenu2.default,{onSelect:function onSelect(value){return _this6.chooseServer(value);}},
+_react2.default.createElement(_reactNativePopupMenu2.default,{onSelect:function onSelect(value){return _this5.chooseServer(value);}},
 _react2.default.createElement(_reactNativePopupMenu.MenuTrigger,null,
 _react2.default.createElement(_reactNative.Text,{style:_style2.default.right_icon},
 Object.keys(this.state.servers).length)),
@@ -87600,7 +87597,7 @@ Object.keys(this.state.servers).length)),
 _react2.default.createElement(_reactNativePopupMenu.MenuOptions,null,
 this.renderMoreOption('add','','plus'),
 Object.keys(this.state.servers).map(function(k,i){
-return _this6.renderMoreOption('',k,'play');
+return _this5.renderMoreOption('',k,'play');
 })))));
 
 
@@ -87637,12 +87634,12 @@ this.setupHbUdp();
 {
 if(this.state.running)_reactNativeMongoose2.default.stop();
 if(this.udp)this.udp.close();
-_reactNativeBackgroundTimer2.default.clearInterval(this.heartbeat_id);
+BackgroundTimer.clearInterval(this.heartbeat_id);
 this.setState({
 running:false});
 
 }},{key:"taskAction",value:function taskAction()
-{var _this7=this;
+{var _this6=this;
 if(this.state.running){
 _reactNative.Alert.alert(
 _reactNativeI18n2.default.t("task"),
@@ -87650,7 +87647,7 @@ _reactNativeI18n2.default.t("confirm_stop_task"),
 [
 {text:_reactNativeI18n2.default.t("no")},
 {text:_reactNativeI18n2.default.t('yes'),onPress:function onPress(){
-_this7.stopAll();
+_this6.stopAll();
 _reactNativeRouterFlux.Actions.pop();
 }}]);
 
@@ -88551,80 +88548,6 @@ opts=opts||{};
 return opts.exact?new RegExp('^'+v6+'$'):new RegExp(v6,'g');
 };
 }, 678, null, "ip-regex/index.js");
-__d(/* react-native-background-timer/index.js */function(global, require, module, exports) {'use strict';
-var _reactNative=require(12 /* react-native */);
-
-
-
-var RNBackgroundTimer=_reactNative.NativeModules.BackgroundTimer||_reactNative.NativeModules.RNBackgroundTimer;
-
-var uniqueId=0;
-var callbacks={};
-
-var BackgroundTimer={
-
-
-start:function start(delay){
-return RNBackgroundTimer.start(delay);
-},
-
-stop:function stop(){
-return RNBackgroundTimer.stop();
-},
-
-
-setTimeout:function setTimeout(callback,timeout){
-var timeoutId=++uniqueId;
-callbacks[timeoutId]={
-callback:callback,
-interval:false,
-timeout:timeout};
-
-RNBackgroundTimer.setTimeout(timeoutId,timeout);
-return timeoutId;
-},
-
-clearTimeout:function clearTimeout(timeoutId){
-if(callbacks[timeoutId]){
-delete callbacks[timeoutId];
-
-}
-},
-
-setInterval:function setInterval(callback,timeout){
-var intervalId=++uniqueId;
-callbacks[intervalId]={
-callback:callback,
-interval:true,
-timeout:timeout};
-
-RNBackgroundTimer.setTimeout(intervalId,timeout);
-return intervalId;
-},
-
-clearInterval:function clearInterval(intervalId){
-if(callbacks[intervalId]){
-delete callbacks[intervalId];
-
-}
-}};
-
-
-_reactNative.DeviceEventEmitter.addListener('backgroundTimer.timeout',function(id){
-if(callbacks[id]){
-var callback=callbacks[id].callback;
-if(!callbacks[id].interval){
-delete callbacks[id];
-}else
-{
-RNBackgroundTimer.setTimeout(id,callbacks[id].timeout);
-}
-callback();
-}
-});
-
-module.exports=BackgroundTimer;
-}, 679, null, "react-native-background-timer/index.js");
 __d(/* react-native-network-info/NetworkInfo.js */function(global, require, module, exports) {'use strict';
 
 var RNNetworkInfo=require(12 /* react-native */).NativeModules.RNNetworkInfo;
@@ -88638,6 +88561,10 @@ getIPAddress:function getIPAddress(ip){
 RNNetworkInfo.getIPAddress(ip);
 },
 
+getRouterIPAddress:function getRouterIPAddress(ip){
+RNNetworkInfo.getRouterIPAddress(ip);
+},
+
 ping:function ping(url,found){
 RNNetworkInfo.ping(url,found);
 },
@@ -88648,15 +88575,15 @@ RNNetworkInfo.wake(mac,ip,formattedMac);
 
 
 module.exports=NetworkInfo;
-}, 680, null, "react-native-network-info/NetworkInfo.js");
+}, 679, null, "react-native-network-info/NetworkInfo.js");
 __d(/* xconn/src/v/About.js */function(global, require, module, exports) {Object.defineProperty(exports,"__esModule",{value:true});var _react=require(277 /* react */);var _react2=babelHelpers.interopRequireDefault(_react);
 var _reactNative=require(12 /* react-native */);
 var _reactNativeRouterFlux=require(402 /* react-native-router-flux */);
-var _reactNativeFs=require(682 /* react-native-fs */);var _reactNativeFs2=babelHelpers.interopRequireDefault(_reactNativeFs);
+var _reactNativeFs=require(681 /* react-native-fs */);var _reactNativeFs2=babelHelpers.interopRequireDefault(_reactNativeFs);
 var _reactNativeI18n=require(620 /* react-native-i18n */);var _reactNativeI18n2=babelHelpers.interopRequireDefault(_reactNativeI18n);
 var _reactNativeDeviceInfo=require(670 /* react-native-device-info */);var _reactNativeDeviceInfo2=babelHelpers.interopRequireDefault(_reactNativeDeviceInfo);
 var _style=require(622 /* ../style */);var _style2=babelHelpers.interopRequireDefault(_style);
-var _reactNativeNetworkInfo=require(680 /* react-native-network-info */);var _reactNativeNetworkInfo2=babelHelpers.interopRequireDefault(_reactNativeNetworkInfo);var
+var _reactNativeNetworkInfo=require(679 /* react-native-network-info */);var _reactNativeNetworkInfo2=babelHelpers.interopRequireDefault(_reactNativeNetworkInfo);var
 
 About=function(_React$Component){babelHelpers.inherits(About,_React$Component);
 function About(props){babelHelpers.classCallCheck(this,About);var _this=babelHelpers.possibleConstructorReturn(this,(About.__proto__||Object.getPrototypeOf(About)).call(this,
@@ -88690,7 +88617,7 @@ _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}
 _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}}," "),
 _react2.default.createElement(_reactNative.Image,{
 style:{width:100,height:100,backgroundColor:'white'},
-source:require(685 /* ./img/xconn.png */)}),
+source:require(684 /* ./img/xconn.png */)}),
 
 _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}},_reactNativeI18n2.default.t('xconn')," ",_reactNativeDeviceInfo2.default.getVersion()),
 _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}}," "),
@@ -88719,7 +88646,7 @@ this.renderCopyright()));
 
 
 }}]);return About;}(_react2.default.Component);exports.default=About;
-}, 681, null, "xconn/src/v/About.js");
+}, 680, null, "xconn/src/v/About.js");
 __d(/* react-native-fs/FS.common.js */function(global, require, module, exports) {
 
 
@@ -88733,8 +88660,8 @@ var RNFSManager=require(12 /* react-native */).NativeModules.RNFSManager;
 
 var NativeAppEventEmitter=require(12 /* react-native */).NativeAppEventEmitter;
 var DeviceEventEmitter=require(12 /* react-native */).DeviceEventEmitter;
-var base64=require(683 /* base-64 */);
-var utf8=require(684 /* utf8 */);
+var base64=require(682 /* base-64 */);
+var utf8=require(683 /* utf8 */);
 
 var RNFSFileTypeRegular=RNFSManager.RNFSFileTypeRegular;
 var RNFSFileTypeDirectory=RNFSManager.RNFSFileTypeDirectory;
@@ -89149,7 +89076,7 @@ PicturesDirectoryPath:RNFSManager.RNFSPicturesDirectoryPath};
 
 
 module.exports=RNFS;
-}, 682, null, "react-native-fs/FS.common.js");
+}, 681, null, "react-native-fs/FS.common.js");
 __d(/* base-64/base64.js */function(global, require, module, exports) {
 ;(function(root){
 
@@ -89315,7 +89242,7 @@ root.base64=base64;
 }
 
 })(this);
-}, 683, null, "base-64/base64.js");
+}, 682, null, "base-64/base64.js");
 __d(/* utf8/utf8.js */function(global, require, module, exports) {
 ;(function(root){
 
@@ -89560,13 +89487,13 @@ root.utf8=utf8;
 }
 
 })(this);
-}, 684, null, "utf8/utf8.js");
+}, 683, null, "utf8/utf8.js");
 __d(/* xconn/src/v/img/xconn.png */function(global, require, module, exports) {module.exports = require(170 /* react-native/Libraries/Image/AssetRegistry */).registerAsset({"__packager_asset":true,"httpServerLocation":"/assets/src/v/img","width":512,"height":512,"scales":[1],"hash":"d562d53ec45ab637bbbb7bcb0865f633","name":"xconn","type":"png"});
-}, 685, null, "xconn/src/v/img/xconn.png");
+}, 684, null, "xconn/src/v/img/xconn.png");
 __d(/* xconn/src/v/Web.js */function(global, require, module, exports) {Object.defineProperty(exports,"__esModule",{value:true});var _react=require(277 /* react */);var _react2=babelHelpers.interopRequireDefault(_react);
 var _reactNative=require(12 /* react-native */);
 var _reactNativeRouterFlux=require(402 /* react-native-router-flux */);
-var _reactNativeFs=require(682 /* react-native-fs */);var _reactNativeFs2=babelHelpers.interopRequireDefault(_reactNativeFs);
+var _reactNativeFs=require(681 /* react-native-fs */);var _reactNativeFs2=babelHelpers.interopRequireDefault(_reactNativeFs);
 var _reactNativeI18n=require(620 /* react-native-i18n */);var _reactNativeI18n2=babelHelpers.interopRequireDefault(_reactNativeI18n);
 var _reactNativeDeviceInfo=require(670 /* react-native-device-info */);var _reactNativeDeviceInfo2=babelHelpers.interopRequireDefault(_reactNativeDeviceInfo);
 var _style=require(622 /* ../style */);var _style2=babelHelpers.interopRequireDefault(_style);var
@@ -89608,7 +89535,7 @@ javaScriptEnabled:false})));
 
 
 }}]);return Web;}(_react2.default.Component);exports.default=Web;
-}, 686, null, "xconn/src/v/Web.js");
+}, 685, null, "xconn/src/v/Web.js");
 __d(/* xconn/src/v/FormModal.js */function(global, require, module, exports) {Object.defineProperty(exports,"__esModule",{value:true});var _react=require(277 /* react */);var _react2=babelHelpers.interopRequireDefault(_react);var
 
 
@@ -89630,14 +89557,14 @@ return this.props.renderScene();
 FormModal.propTypes={
 renderScene:_react2.default.PropTypes.func,
 updateDisplayValue:_react2.default.PropTypes.func};
-}, 687, null, "xconn/src/v/FormModal.js");
+}, 686, null, "xconn/src/v/FormModal.js");
 __d(/* xconn/src/lang/all.js */function(global, require, module, exports) {var _reactNativeI18n=require(620 /* react-native-i18n */);var _reactNativeI18n2=babelHelpers.interopRequireDefault(_reactNativeI18n);
 
 _reactNativeI18n2.default.fallbacks=true;
 _reactNativeI18n2.default.translations={
-en:require(689 /* ./en */),
-zh:require(690 /* ./cn */)};
-}, 688, null, "xconn/src/lang/all.js");
+en:require(688 /* ./en */),
+zh:require(689 /* ./cn */)};
+}, 687, null, "xconn/src/lang/all.js");
 __d(/* xconn/src/lang/en.js */function(global, require, module, exports) {module.exports={
 xconn:'Xconn',
 via:'Via',
@@ -89814,7 +89741,7 @@ tos_modify:'Modification of agreement',
 tos_notice:'Notice delivery',
 tos_legal:'Legal jurisdiction',
 tos_others:'Other regulations'};
-}, 689, null, "xconn/src/lang/en.js");
+}, 688, null, "xconn/src/lang/en.js");
 __d(/* xconn/src/lang/cn.js */function(global, require, module, exports) {module.exports={
 xconn:'Xconn',
 via:'使用',
@@ -89990,6 +89917,6 @@ tos_modify:'修改条款',
 tos_notice:'提醒送达',
 tos_legal:'法律管辖',
 tos_others:'其他约束'};
-}, 690, null, "xconn/src/lang/cn.js");
+}, 689, null, "xconn/src/lang/cn.js");
 ;require(213);
 ;require(0);

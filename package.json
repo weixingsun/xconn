@@ -20,12 +20,12 @@
     "react-native-i18n": "^1.0.0",
     "react-native-mail": "^3.0.1",
     "react-native-mongoose": "git+https://github.com/weixingsun/react-native-mongoose.git",
-    "react-native-network-info": "git+https://github.com/jbrodriguez/react-native-network-info.git",
+    "react-native-network-info": "git+https://github.com/weixingsun/react-native-network-info.git",
     "react-native-popup-menu": "^0.7.0",
     "react-native-router-flux": "^3.37.0",
     "react-native-udp": "^1.2.9",
     "react-native-vector-icons": "^4.0.0",
-    "react-native-workers": "^0.3.1"
+    "react-native-workers": "https://github.com/weixingsun/react-native-workers.git"
   },
   "devDependencies": {
     "babel-jest": "18.0.0",

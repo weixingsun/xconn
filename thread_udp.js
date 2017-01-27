@@ -26,7 +26,8 @@ self.onmessage = (msg) => {
 
 function loop() {
   //self.postMessage("Ping");
-  if(self.role === Const.ROLE.SERVER) sendMsg(self.bcip,self.PORT,JSON.stringify(self.pkt))
+  let toip = self.mask==null?'255.255.255.255':self.mask
+  if(self.role === Const.ROLE.SERVER) sendMsg(toip,self.PORT,JSON.stringify(self.pkt))
   setTimeout(loop, 5000);
 }
 function changeRole(msg){
@@ -89,6 +90,10 @@ function startBroadcast(){
         self.myip=ip
         wrapHbPkt()
     });
+    NetworkInfo.getRouterIPAddress(router_ip => {
+        self.mask = router_ip.replace(/254/g , "255");
+        //alert(self.mask)
+    });
     self.postMessage("udp startBroadcast");
     self.broadcasting=true
 }
@@ -105,8 +110,9 @@ function wrapHbPkt(){
         mfg:self.mfg,
         //this.sendMsg(bcip,this.UDP_LISTEN_PORT,JSON.stringify(json))
     }
-    let arr = self.myip.split('.')
-    self.bcip=arr[0]+'.'+arr[1]+'.'+arr[2]+'.255'
+    //let arr = self.myip.split('.')
+    //self.bcip=arr[0]+'.'+arr[1]+'.'+arr[2]+'.255'
+    //self.bcip='255.255.255.255'
 }
 function sendMsg(host,port,msg){
     if(self.socket!=null){

@@ -46,6 +46,7 @@ export default class Server extends React.Component {
         Global.threads.udp.onmessage = (message) => {
           if(message.indexOf('{')>-1 && this.updateUI===true){
               let msg = JSON.parse(message).body
+              if(msg.role===Const.ROLE.SERVER && msg.name!==DeviceInfo.getDeviceName()) return
               let arr = this.state.clients
               arr[msg.ip]=msg
               this.setState({
@@ -141,7 +142,7 @@ export default class Server extends React.Component {
     renderMoreOption(act,value,icon){
         let ticon=icon==='Apple'?'apple':'android'
         //style={{backgroundColor:'white'}}
-        let title=I18n.t('client_open')+' '+value
+        let title=I18n.t('client_open')+' '+this.state.clients[value].name
         if(act==='stop') title=I18n.t('task_stop')
         return (
             <MenuOption value={value} key={value} style={{padding:1}}>

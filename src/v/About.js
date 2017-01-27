@@ -13,12 +13,17 @@ export default class About extends React.Component {
         this.state={ 
             id:'',
             ip:'127.0.0.1',
+            mask:'0.0.0.0',
         }
         this.file=null
     }
     componentWillMount() {
         NetworkInfo.getIPAddress(ip => {
             this.setState({ip})
+        });
+        NetworkInfo.getMask(mask => {
+            //let mask = router.replace(/254/g , "255");
+            this.setState({mask})
         });
     }
     //this.renderField(I18n.t('id'), this.state.id)
@@ -62,7 +67,7 @@ export default class About extends React.Component {
         return (
             <View style={styles.container}>
 			{this.renderIcon()}
-			{this.renderField(I18n.t('id'), this.state.id)}
+			{this.renderField(I18n.t('mask'), this.state.mask)}
 			{this.renderField(I18n.t('ip'), this.state.ip)}
 			{this.renderCopyright()}
             </View>

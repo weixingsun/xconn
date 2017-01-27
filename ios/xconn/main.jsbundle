@@ -88561,6 +88561,10 @@ getIPAddress:function getIPAddress(ip){
 RNNetworkInfo.getIPAddress(ip);
 },
 
+getMask:function getMask(ip){
+RNNetworkInfo.getMask(ip);
+},
+
 getRouterIPAddress:function getRouterIPAddress(ip){
 RNNetworkInfo.getRouterIPAddress(ip);
 },
@@ -88590,13 +88594,18 @@ function About(props){babelHelpers.classCallCheck(this,About);var _this=babelHel
 props));
 _this.state={
 id:'',
-ip:'127.0.0.1'};
+ip:'127.0.0.1',
+mask:'0.0.0.0'};
 
 _this.file=null;return _this;
 }babelHelpers.createClass(About,[{key:"componentWillMount",value:function componentWillMount()
 {var _this2=this;
 _reactNativeNetworkInfo2.default.getIPAddress(function(ip){
 _this2.setState({ip:ip});
+});
+_reactNativeNetworkInfo2.default.getMask(function(mask){
+
+_this2.setState({mask:mask});
 });
 }},{key:"renderField",value:function renderField(
 
@@ -88640,7 +88649,7 @@ _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}
 return(
 _react2.default.createElement(_reactNative.View,{style:_style2.default.container},
 this.renderIcon(),
-this.renderField(_reactNativeI18n2.default.t('id'),this.state.id),
+this.renderField(_reactNativeI18n2.default.t('mask'),this.state.mask),
 this.renderField(_reactNativeI18n2.default.t('ip'),this.state.ip),
 this.renderCopyright()));
 
@@ -89609,6 +89618,7 @@ home:'Home',
 uuid:'Unique ID',
 id:'ID',
 ip:'IP',
+mask:'Mask',
 hi:'Hi',
 click_more:'Click to view more',
 list:'List',
@@ -89783,6 +89793,7 @@ home:'首页',
 uuid:'唯一标识',
 id:'标识',
 ip:'IP地址',
+mask:'掩码',
 hi:'你好',
 click_more:'点击查看',
 list:'列表',

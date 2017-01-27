@@ -69229,6 +69229,10 @@ getIPAddress:function getIPAddress(ip){
 RNNetworkInfo.getIPAddress(ip);
 },
 
+getMask:function getMask(ip){
+RNNetworkInfo.getMask(ip);
+},
+
 getRouterIPAddress:function getRouterIPAddress(ip){
 RNNetworkInfo.getRouterIPAddress(ip);
 },

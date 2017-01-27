@@ -42,6 +42,7 @@ module.exports = {
     uuid:'Unique ID',
     id:'ID',
     ip:'IP',
+    mask:'Mask',
     hi: 'Hi',
     click_more: 'Click to view more',
     list: 'List',

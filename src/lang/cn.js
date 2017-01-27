@@ -39,6 +39,7 @@ module.exports = {
     uuid:'唯一标识',
     id:'标识',
     ip:'IP地址',
+    mask:'掩码',
     hi: '你好',
     click_more: '点击查看',
     list: '列表',

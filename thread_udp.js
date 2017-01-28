@@ -4,6 +4,10 @@ import DeviceInfo from 'react-native-device-info'
 import NetworkInfo from 'react-native-network-info'
 import Base64 from './src/hi-base64'
 import Const from './src/Const'
+
+var ip_reg = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+var mask_reg = /^(254|252|248|240|224|192|128|0)\.0\.0\.0|255\.(254|252|248|240|224|192|128|0)\.0\.0|255\.255\.(254|252|248|240|224|192|128|0)\.0|255\.255\.255\.(254|252|248|240|224|192|128|0)$/;
+
 if(!String.prototype.startsWith){
     String.prototype.startsWith = function (str) {
         return !this.indexOf(str);
@@ -26,7 +30,7 @@ self.onmessage = (msg) => {
 
 function loop() {
   //self.postMessage("Ping");
-  let toip = self.mask==null?'255.255.255.255':self.mask
+  let toip = self.bcip==null?self.myip:self.bcip
   if(self.role === Const.ROLE.SERVER) sendMsg(toip,self.PORT,JSON.stringify(self.pkt))
   setTimeout(loop, 5000);
 }
@@ -88,11 +92,10 @@ function startBroadcast(){
     self.mfg=DeviceInfo.getManufacturer()
     NetworkInfo.getIPAddress(ip => {
         self.myip=ip
-        wrapHbPkt()
-    });
-    NetworkInfo.getRouterIPAddress(router_ip => {
-        self.mask = router_ip.replace(/254/g , "255");
-        //alert(self.mask)
+        NetworkInfo.getMask(mask => {
+            self.bcip = getBroadcastAddr4(mask,ip)
+            wrapHbPkt()
+        });
     });
     self.postMessage("udp startBroadcast");
     self.broadcasting=true
@@ -131,6 +134,59 @@ function sendMsg(host,port,msg){
       startListen()
       startBroadcast()
     }
+}
+/////////////////////////////////////////////////////////////////////////
+function binary_to_ip(binary){
+    if (binary.length == 32) {
+        let a = parseInt(binary.substr(0, 8), 2);
+        let b = parseInt(binary.substr(8, 8), 2);
+        let c = parseInt(binary.substr(16, 8), 2);
+        let d = parseInt(binary.slice(-8), 2);
+        return a + '.' + b + '.' + c + '.' + d;
+    }
+    return '';
+}
+function ip_to_binary(ip){
+    if (ip_reg.test(ip)) {
+        var ip_str = "", ip_arr = ip.split(".");
+        for (var i = 0; i < 4; i++) {
+            let curr_num = ip_arr[i];
+            let number_bin = parseInt(curr_num);
+            number_bin = number_bin.toString(2);
+            let count = 8 - number_bin.length;
+            for (var j = 0; j < count; j++) {
+                number_bin = "0" + number_bin;
+            }
+            ip_str += number_bin;
+        }
+        return ip_str;
+    }
+    return '';
+}
+function getBroadcastAddr4(mask, ip){
+    let network_broadcast = [];
+    let network_addr = "";
+    let mask_arr = mask.split(".");
+    let ip_arr = ip.split(".");
+    // 计算IP的网络地址 与(&)运算
+    for (var i = 0; i < mask_arr.length; i++) {
+        let number1 = parseInt(mask_arr[i]);
+        let number2 = parseInt(ip_arr[i]);
+        network_addr += number1 & number2;
+        if( i < 3 ){
+            network_addr += ".";
+        }
+    }
+    network_broadcast.push(network_addr);
+    // 计算广播地址
+    // 子掩码后面有几个0，就去掉IP地址后几位再补1
+    let mask_binary = ip_to_binary(mask);
+    let ip_binary = ip_to_binary(ip);
+    let mask_zero = mask_binary.split(0).length - 1;
+    let one_number = new Array(mask_zero + 1).join('1'); // IP地址后位补1
+    let ip_1 = ip_binary.slice(0, -mask_zero) + one_number;
+    network_broadcast.push(binary_to_ip(ip_1));
+    return network_broadcast;
 }
 
 setTimeout(loop, 5000);

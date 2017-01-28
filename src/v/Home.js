@@ -16,18 +16,19 @@ export default class Home extends React.Component {
         super(props);
         this.ds= new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
         this.state={ 
-            listening:false,
+            //listening:false,
             //server_menu_opened: false,
             servers:{}, //available to connect from client
         }
         this.renderMore=this.renderMore.bind(this)
         this.renderMoreOption=this.renderMoreOption.bind(this)
         this.chooseServer=this.chooseServer.bind(this)
-        this.listenAction=this.listenAction.bind(this)
+        //this.listenAction=this.listenAction.bind(this)
     }
     componentWillMount() {
         this.updateWithActionIcon()
         Global.threads.http = new Worker('thread_http.js');
+        Global.threads.http.postMessage("start");
         Global.threads.udp  = new Worker('thread_udp.js');
         Global.threads.udp.onmessage = (message) => {
           //alert("Home page msg from udp:"+ message);
@@ -42,6 +43,7 @@ export default class Home extends React.Component {
           }
         }
         this.updateUI=true
+        Global.threads.udp.postMessage("start");
     }
     componentWillUnmount(){
         //this.stopAll()
@@ -96,7 +98,7 @@ export default class Home extends React.Component {
             </MenuOption>
         )
     }
-    listenAction(){
+    /*listenAction(){
         if(this.state.listening){
             Alert.alert(
                 I18n.t("task"),
@@ -122,18 +124,18 @@ export default class Home extends React.Component {
         this.setState({
             listening:false
         })
-        Global.threads.udp.postMessage("stop");
+        //Global.threads.udp.postMessage("stop");
     }
     changeRole(server){
         if(server) role=Const.ROLE.SERVER
         else role=Const.ROLE.CLIENT
         Global.threads.udp.postMessage("role:"+role);
-    }
+    }*/
     _renderCircle() {
-        let animate = this.state.listening?'rotate':null
+        let animate = 'rotate' //this.state.listening?'rotate':null
+        //<TouchableHighlight underlayColor={'white'} onPress={this.listenAction}>
         return (
             <View style={styles.home_circle}>
-              <TouchableHighlight underlayColor={'white'} onPress={this.listenAction}>
                 <Animatable.Image
                     animation={animate} //pulse,rotate,bounce,flash,rubberBand,shake,swing,tada,wobble,zoomIn,zoomOut
                     duration={3000}
@@ -142,7 +144,6 @@ export default class Home extends React.Component {
                     style={styles.home_circle}
                     source={require('./img/radar0.png')}
                 />
-              </TouchableHighlight>
             </View>
         );
     }

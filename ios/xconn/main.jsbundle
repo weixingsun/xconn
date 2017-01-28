@@ -81534,18 +81534,19 @@ function Home(props){babelHelpers.classCallCheck(this,Home);var _this=babelHelpe
 props));
 _this.ds=new _reactNative.ListView.DataSource({rowHasChanged:function rowHasChanged(r1,r2){return r1!==r2;}});
 _this.state={
-listening:false,
+
 
 servers:{}};
 
 _this.renderMore=_this.renderMore.bind(_this);
 _this.renderMoreOption=_this.renderMoreOption.bind(_this);
-_this.chooseServer=_this.chooseServer.bind(_this);
-_this.listenAction=_this.listenAction.bind(_this);return _this;
+_this.chooseServer=_this.chooseServer.bind(_this);return _this;
+
 }babelHelpers.createClass(Home,[{key:"componentWillMount",value:function componentWillMount()
 {var _this2=this;
 this.updateWithActionIcon();
 _Global2.default.threads.http=new _reactNativeWorkers.Worker('thread_http.js');
+_Global2.default.threads.http.postMessage("start");
 _Global2.default.threads.udp=new _reactNativeWorkers.Worker('thread_udp.js');
 _Global2.default.threads.udp.onmessage=function(message){
 
@@ -81560,6 +81561,7 @@ _this2.updateWithActionIcon();
 }
 };
 this.updateUI=true;
+_Global2.default.threads.udp.postMessage("start");
 }},{key:"componentWillUnmount",value:function componentWillUnmount()
 {
 
@@ -81613,53 +81615,52 @@ _react2.default.createElement(_reactNative.Text,{style:{color:'white'}},title)))
 
 
 
-}},{key:"listenAction",value:function listenAction()
-{var _this4=this;
-if(this.state.listening){
-_reactNative.Alert.alert(
-_reactNativeI18n2.default.t("task"),
-_reactNativeI18n2.default.t("confirm_stop_task"),
-[
-{text:_reactNativeI18n2.default.t("no")},
-{text:_reactNativeI18n2.default.t('yes'),onPress:function onPress(){
-_this4.stopListen();
-}}]);
-
-
-}else{
-this.startListen();
-}
-}},{key:"startListen",value:function startListen()
-{
-this.setState({
-listening:true});
-
-_Global2.default.threads.udp.postMessage("start");
-}},{key:"stopListen",value:function stopListen()
-{
-this.setState({
-listening:false});
-
-_Global2.default.threads.udp.postMessage("stop");
-}},{key:"changeRole",value:function changeRole(
-server){
-if(server)role=_Const2.default.ROLE.SERVER;else
-role=_Const2.default.ROLE.CLIENT;
-_Global2.default.threads.udp.postMessage("role:"+role);
 }},{key:"_renderCircle",value:function _renderCircle()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 {
-var animate=this.state.listening?'rotate':null;
+var animate='rotate';
+
 return(
 _react2.default.createElement(_reactNative.View,{style:_style2.default.home_circle},
-_react2.default.createElement(_reactNative.TouchableHighlight,{underlayColor:'white',onPress:this.listenAction},
 _react2.default.createElement(Animatable.Image,{
 animation:animate,
 duration:3000,
 easing:"linear",
 iterationCount:"infinite",
 style:_style2.default.home_circle,
-source:require(666 /* ./img/radar0.png */)}))));
-
+source:require(666 /* ./img/radar0.png */)})));
 
 
 
@@ -88557,6 +88558,9 @@ getSSID:function getSSID(ssid){
 RNNetworkInfo.getSSID(ssid);
 },
 
+getAllIPs:function getAllIPs(ips){
+RNNetworkInfo.getAllIPs(ips);
+},
 getIPAddress:function getIPAddress(ip){
 RNNetworkInfo.getIPAddress(ip);
 },
@@ -88587,34 +88591,81 @@ var _reactNativeFs=require(681 /* react-native-fs */);var _reactNativeFs2=babelH
 var _reactNativeI18n=require(620 /* react-native-i18n */);var _reactNativeI18n2=babelHelpers.interopRequireDefault(_reactNativeI18n);
 var _reactNativeDeviceInfo=require(670 /* react-native-device-info */);var _reactNativeDeviceInfo2=babelHelpers.interopRequireDefault(_reactNativeDeviceInfo);
 var _style=require(622 /* ../style */);var _style2=babelHelpers.interopRequireDefault(_style);
-var _reactNativeNetworkInfo=require(679 /* react-native-network-info */);var _reactNativeNetworkInfo2=babelHelpers.interopRequireDefault(_reactNativeNetworkInfo);var
+var _reactNativeNetworkInfo=require(679 /* react-native-network-info */);var _reactNativeNetworkInfo2=babelHelpers.interopRequireDefault(_reactNativeNetworkInfo);
+var _FontAwesome=require(449 /* react-native-vector-icons/FontAwesome */);var _FontAwesome2=babelHelpers.interopRequireDefault(_FontAwesome);var
 
 About=function(_React$Component){babelHelpers.inherits(About,_React$Component);
 function About(props){babelHelpers.classCallCheck(this,About);var _this=babelHelpers.possibleConstructorReturn(this,(About.__proto__||Object.getPrototypeOf(About)).call(this,
 props));
 _this.state={
+modalVisible:false,
 id:'',
-ip:'127.0.0.1',
-mask:'0.0.0.0'};
+ips:{},
+ip:'127.0.0.1'};return _this;
 
-_this.file=null;return _this;
+
 }babelHelpers.createClass(About,[{key:"componentWillMount",value:function componentWillMount()
 {var _this2=this;
-_reactNativeNetworkInfo2.default.getIPAddress(function(ip){
-_this2.setState({ip:ip});
-});
-_reactNativeNetworkInfo2.default.getMask(function(mask){
+_reactNativeNetworkInfo2.default.getAllIPs(function(ips){
+var json=JSON.parse(ips);
+var k1=Object.keys(json)[0];
+var if0=json[k1]['addr'];
+_this2.setState({
+ip:if0,
+ips:json});
 
-_this2.setState({mask:mask});
 });
+}},{key:"setModalVisible",value:function setModalVisible(
+visible){
+this.setState({modalVisible:visible});
+}},{key:"renderModalIPs",value:function renderModalIPs()
+{var _this3=this;
+return(
+_react2.default.createElement(_reactNative.Modal,{
+animationType:"slide",
+transparent:false,
+visible:this.state.modalVisible},
+
+
+_react2.default.createElement(_reactNative.View,{style:{flex:1}},
+_react2.default.createElement(_FontAwesome2.default,{
+name:'times-circle',
+size:30,
+onPress:function onPress(){_this3.setModalVisible(!_this3.state.modalVisible);},
+style:{marginTop:16,marginLeft:5}}),
+
+_react2.default.createElement(_reactNative.View,{
+style:{
+flex:1,
+margin:10,
+
+justifyContent:'center'}},
+
+
+Object.keys(this.state.ips).map(function(k){
+return(
+_react2.default.createElement(_reactNative.View,{style:{flexDirection:'row'},key:k},
+_react2.default.createElement(_reactNative.Text,{style:{width:60}},k+':'),
+_react2.default.createElement(_reactNative.Text,null,_this3.state.ips[k].addr)));
+
+
+})))));
+
+
+
+
 }},{key:"renderField",value:function renderField(
 
-title,value){
+title,value){var _this4=this;
 return(
 _react2.default.createElement(_reactNative.View,{style:_style2.default.detail_card},
 _react2.default.createElement(_reactNative.View,{style:{flexDirection:'row'}},
-_react2.default.createElement(_reactNative.Text,{style:{width:80,justifyContent:'center',alignItems:'center',fontSize:16,fontWeight:'bold',color:'black'}}," ",title,": "),
-_react2.default.createElement(_reactNative.Text,{style:{marginLeft:10,justifyContent:'center'}},value))));
+_react2.default.createElement(_reactNative.Text,{style:{width:40,justifyContent:'center',alignItems:'center',fontSize:16,fontWeight:'bold',color:'black'}}," ",title,": "),
+_react2.default.createElement(_reactNative.View,{style:{flex:1,flexDirection:'row',justifyContent:'center'}},
+_react2.default.createElement(_reactNative.Text,{style:{marginLeft:0,justifyContent:'center',fontSize:12}},value),
+_react2.default.createElement(_reactNative.View,{style:{flex:1}}),
+_react2.default.createElement(_FontAwesome2.default,{name:'eye',size:20,style:{width:40},onPress:function onPress(){return _this4.setModalVisible(!_this4.state.modalVisible);}})))));
+
 
 
 
@@ -88649,9 +88700,9 @@ _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}
 return(
 _react2.default.createElement(_reactNative.View,{style:_style2.default.container},
 this.renderIcon(),
-this.renderField(_reactNativeI18n2.default.t('mask'),this.state.mask),
 this.renderField(_reactNativeI18n2.default.t('ip'),this.state.ip),
-this.renderCopyright()));
+this.renderCopyright(),
+this.renderModalIPs()));
 
 
 }}]);return About;}(_react2.default.Component);exports.default=About;

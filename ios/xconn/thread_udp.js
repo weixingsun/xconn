@@ -1596,6 +1596,10 @@ var _reactNativeDeviceInfo=require(410 /* react-native-device-info */);var _reac
 var _reactNativeNetworkInfo=require(411 /* react-native-network-info */);var _reactNativeNetworkInfo2=babelHelpers.interopRequireDefault(_reactNativeNetworkInfo);
 var _hiBase=require(412 /* ./src/hi-base64 */);var _hiBase2=babelHelpers.interopRequireDefault(_hiBase);
 var _Const=require(413 /* ./src/Const */);var _Const2=babelHelpers.interopRequireDefault(_Const);
+
+var ip_reg=/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+var mask_reg=/^(254|252|248|240|224|192|128|0)\.0\.0\.0|255\.(254|252|248|240|224|192|128|0)\.0\.0|255\.255\.(254|252|248|240|224|192|128|0)\.0|255\.255\.255\.(254|252|248|240|224|192|128|0)$/;
+
 if(!String.prototype.startsWith){
 String.prototype.startsWith=function(str){
 return!this.indexOf(str);
@@ -1618,7 +1622,7 @@ if(msg.startsWith('role:'))changeRole(msg);
 
 function loop(){
 
-var toip=_reactNativeWorkers.self.mask==null?'255.255.255.255':_reactNativeWorkers.self.mask;
+var toip=_reactNativeWorkers.self.bcip==null?_reactNativeWorkers.self.myip:_reactNativeWorkers.self.bcip;
 if(_reactNativeWorkers.self.role===_Const2.default.ROLE.SERVER)sendMsg(toip,_reactNativeWorkers.self.PORT,JSON.stringify(_reactNativeWorkers.self.pkt));
 setTimeout(loop,5000);
 }
@@ -1680,11 +1684,10 @@ _reactNativeWorkers.self.name=_reactNativeDeviceInfo2.default.getDeviceName();
 _reactNativeWorkers.self.mfg=_reactNativeDeviceInfo2.default.getManufacturer();
 _reactNativeNetworkInfo2.default.getIPAddress(function(ip){
 _reactNativeWorkers.self.myip=ip;
+_reactNativeNetworkInfo2.default.getMask(function(mask){
+_reactNativeWorkers.self.bcip=getBroadcastAddr4(mask,ip);
 wrapHbPkt();
 });
-_reactNativeNetworkInfo2.default.getRouterIPAddress(function(router_ip){
-_reactNativeWorkers.self.mask=router_ip.replace(/254/g,"255");
-
 });
 _reactNativeWorkers.self.postMessage("udp startBroadcast");
 _reactNativeWorkers.self.broadcasting=true;
@@ -1723,6 +1726,59 @@ console.log('sent msg:'+msg);
 startListen();
 startBroadcast();
 }
+}
+
+function binary_to_ip(binary){
+if(binary.length==32){
+var a=parseInt(binary.substr(0,8),2);
+var b=parseInt(binary.substr(8,8),2);
+var c=parseInt(binary.substr(16,8),2);
+var d=parseInt(binary.slice(-8),2);
+return a+'.'+b+'.'+c+'.'+d;
+}
+return'';
+}
+function ip_to_binary(ip){
+if(ip_reg.test(ip)){
+var ip_str="",ip_arr=ip.split(".");
+for(var i=0;i<4;i++){
+var curr_num=ip_arr[i];
+var number_bin=parseInt(curr_num);
+number_bin=number_bin.toString(2);
+var count=8-number_bin.length;
+for(var j=0;j<count;j++){
+number_bin="0"+number_bin;
+}
+ip_str+=number_bin;
+}
+return ip_str;
+}
+return'';
+}
+function getBroadcastAddr4(mask,ip){
+var network_broadcast=[];
+var network_addr="";
+var mask_arr=mask.split(".");
+var ip_arr=ip.split(".");
+
+for(var i=0;i<mask_arr.length;i++){
+var number1=parseInt(mask_arr[i]);
+var number2=parseInt(ip_arr[i]);
+network_addr+=number1&number2;
+if(i<3){
+network_addr+=".";
+}
+}
+network_broadcast.push(network_addr);
+
+
+var mask_binary=ip_to_binary(mask);
+var ip_binary=ip_to_binary(ip);
+var mask_zero=mask_binary.split(0).length-1;
+var one_number=new Array(mask_zero+1).join('1');
+var ip_1=ip_binary.slice(0,-mask_zero)+one_number;
+network_broadcast.push(binary_to_ip(ip_1));
+return network_broadcast;
 }
 
 setTimeout(loop,5000);
@@ -69225,6 +69281,9 @@ getSSID:function getSSID(ssid){
 RNNetworkInfo.getSSID(ssid);
 },
 
+getAllIPs:function getAllIPs(ips){
+RNNetworkInfo.getAllIPs(ips);
+},
 getIPAddress:function getIPAddress(ip){
 RNNetworkInfo.getIPAddress(ip);
 },

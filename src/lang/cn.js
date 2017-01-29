@@ -4,6 +4,7 @@ module.exports = {
     email: '邮件',
     share: '分享',
     add: '新建',
+    copy: '复制',
     del: '删除',
     sql: '查询',
     func: '函数',

@@ -4,6 +4,7 @@ import android.app.Application;
 import android.util.Log;
 
 import com.facebook.react.ReactApplication;
+import com.remobile.toast.RCTToastPackage;
 import co.apptailor.Worker.WorkerPackage;
 import com.pusherman.networkinfo.RNNetworkInfoPackage;
 import com.ocetnik.timer.BackgroundTimerPackage;
@@ -35,6 +36,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new RCTToastPackage(),
             new WorkerPackage(),
             new RNNetworkInfoPackage(),
             new BackgroundTimerPackage(),

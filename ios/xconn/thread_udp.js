@@ -1622,8 +1622,10 @@ if(msg.startsWith('role:'))changeRole(msg);
 
 function loop(){
 
-var toip=_reactNativeWorkers.self.bcip==null?_reactNativeWorkers.self.myip:_reactNativeWorkers.self.bcip;
-if(_reactNativeWorkers.self.role===_Const2.default.ROLE.SERVER)sendMsg(toip,_reactNativeWorkers.self.PORT,JSON.stringify(_reactNativeWorkers.self.pkt));
+if(_reactNativeWorkers.self.role===_Const2.default.ROLE.SERVER){
+var toip=_reactNativeWorkers.self.bcip===''?_reactNativeWorkers.self.myip:_reactNativeWorkers.self.bcip;
+sendMsg(toip,_reactNativeWorkers.self.PORT,JSON.stringify(_reactNativeWorkers.self.pkt));
+}
 setTimeout(loop,5000);
 }
 function changeRole(msg){
@@ -1648,7 +1650,18 @@ _reactNativeWorkers.self.postMessage("udp stopped");
 }
 function startListen(){
 if(_reactNativeWorkers.self.listening)return;
-_reactNativeWorkers.self.socket=_reactNativeUdp2.default.createSocket('udp4');
+_reactNativeNetworkInfo2.default.getAllIPs(function(ips){
+var pip=getPrimaryIPMask(JSON.parse(ips));
+_reactNativeWorkers.self.myip=pip.addr;
+_reactNativeWorkers.self.bcip=getBroadcastAddr4(pip.mask,pip.addr);
+
+wrapHbPkt();
+init();
+});
+}
+function init(){
+var p=_reactNativeWorkers.self.myip.indexOf('.')<0?'udp6':'udp4';
+_reactNativeWorkers.self.socket=_reactNativeUdp2.default.createSocket(p);
 _reactNativeWorkers.self.socket.bind(_reactNativeWorkers.self.PORT,function(err){
 if(err)throw err;
 _reactNativeWorkers.self.socket.setBroadcast(true);
@@ -1678,17 +1691,30 @@ _reactNativeWorkers.self.postMessage("udp is listening");
 });
 _reactNativeWorkers.self.listening=true;
 }
+function getPrimaryIPMask(ips){
+var pip={addr:'127.0.0.1',mask:'255.255.255.255'};
+if(ips['en0/ipv4']){
+pip=ips['en0/ipv4'];
+}else if(ips['en0/ipv6']){
+pip=ips['en0/ipv6'];
+}else if(ips['pdp_ip0/ipv4']){
+pip=ips['pdp_ip0/ipv4'];
+}else if(ips['pdp_ip0/ipv6']){
+pip=ips['pdp_ip0/ipv6'];
+}
+return pip;
+}
 function startBroadcast(){
 if(_reactNativeWorkers.self.broadcasting)return;
 _reactNativeWorkers.self.name=_reactNativeDeviceInfo2.default.getDeviceName();
 _reactNativeWorkers.self.mfg=_reactNativeDeviceInfo2.default.getManufacturer();
-_reactNativeNetworkInfo2.default.getIPAddress(function(ip){
-_reactNativeWorkers.self.myip=ip;
-_reactNativeNetworkInfo2.default.getMask(function(mask){
-_reactNativeWorkers.self.bcip=getBroadcastAddr4(mask,ip);
-wrapHbPkt();
-});
-});
+
+
+
+
+
+
+
 _reactNativeWorkers.self.postMessage("udp startBroadcast");
 _reactNativeWorkers.self.broadcasting=true;
 }
@@ -1703,9 +1729,6 @@ role:_reactNativeWorkers.self.role,
 ip:_reactNativeWorkers.self.myip,
 name:_reactNativeWorkers.self.name,
 mfg:_reactNativeWorkers.self.mfg};
-
-
-
 
 
 }
@@ -1723,12 +1746,12 @@ console.log('sent msg:'+msg);
 }
 });
 }else{
-startListen();
+
 startBroadcast();
 }
 }
 
-function binary_to_ip(binary){
+function binary_to_ip4(binary){
 if(binary.length==32){
 var a=parseInt(binary.substr(0,8),2);
 var b=parseInt(binary.substr(8,8),2);
@@ -1738,7 +1761,7 @@ return a+'.'+b+'.'+c+'.'+d;
 }
 return'';
 }
-function ip_to_binary(ip){
+function ip_to_binary4(ip){
 if(ip_reg.test(ip)){
 var ip_str="",ip_arr=ip.split(".");
 for(var i=0;i<4;i++){
@@ -1756,29 +1779,33 @@ return ip_str;
 return'';
 }
 function getBroadcastAddr4(mask,ip){
-var network_broadcast=[];
-var network_addr="";
-var mask_arr=mask.split(".");
-var ip_arr=ip.split(".");
-
-for(var i=0;i<mask_arr.length;i++){
-var number1=parseInt(mask_arr[i]);
-var number2=parseInt(ip_arr[i]);
-network_addr+=number1&number2;
-if(i<3){
-network_addr+=".";
-}
-}
-network_broadcast.push(network_addr);
+if(ip.indexOf('.')<0)return'';
 
 
-var mask_binary=ip_to_binary(mask);
-var ip_binary=ip_to_binary(ip);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var mask_binary=ip_to_binary4(mask);
+var ip_binary=ip_to_binary4(ip);
 var mask_zero=mask_binary.split(0).length-1;
 var one_number=new Array(mask_zero+1).join('1');
 var ip_1=ip_binary.slice(0,-mask_zero)+one_number;
-network_broadcast.push(binary_to_ip(ip_1));
-return network_broadcast;
+
+
+return binary_to_ip4(ip_1);
 }
 
 setTimeout(loop,5000);

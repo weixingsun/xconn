@@ -68196,9 +68196,9 @@ var _Home=require(623 /* ./v/Home */);var _Home2=babelHelpers.interopRequireDefa
 var _Server=require(667 /* ./v/Server */);var _Server2=babelHelpers.interopRequireDefault(_Server);
 var _Client=require(671 /* ./v/Client */);var _Client2=babelHelpers.interopRequireDefault(_Client);
 var _About=require(680 /* ./v/About */);var _About2=babelHelpers.interopRequireDefault(_About);
-var _Web=require(685 /* ./v/Web */);var _Web2=babelHelpers.interopRequireDefault(_Web);
-var _FormModal=require(686 /* ./v/FormModal */);var _FormModal2=babelHelpers.interopRequireDefault(_FormModal);
-var _all=require(687 /* ./lang/all */);var _all2=babelHelpers.interopRequireDefault(_all);
+var _Web=require(686 /* ./v/Web */);var _Web2=babelHelpers.interopRequireDefault(_Web);
+var _FormModal=require(687 /* ./v/FormModal */);var _FormModal2=babelHelpers.interopRequireDefault(_FormModal);
+var _all=require(688 /* ./lang/all */);var _all2=babelHelpers.interopRequireDefault(_all);
 var _reactNativeI18n=require(620 /* react-native-i18n */);var _reactNativeI18n2=babelHelpers.interopRequireDefault(_reactNativeI18n);
 var _reactNativePopupMenu=require(624 /* react-native-popup-menu */);
 var _style=require(622 /* ./style */);var _style2=babelHelpers.interopRequireDefault(_style);
@@ -88592,7 +88592,8 @@ var _reactNativeI18n=require(620 /* react-native-i18n */);var _reactNativeI18n2=
 var _reactNativeDeviceInfo=require(670 /* react-native-device-info */);var _reactNativeDeviceInfo2=babelHelpers.interopRequireDefault(_reactNativeDeviceInfo);
 var _style=require(622 /* ../style */);var _style2=babelHelpers.interopRequireDefault(_style);
 var _reactNativeNetworkInfo=require(679 /* react-native-network-info */);var _reactNativeNetworkInfo2=babelHelpers.interopRequireDefault(_reactNativeNetworkInfo);
-var _FontAwesome=require(449 /* react-native-vector-icons/FontAwesome */);var _FontAwesome2=babelHelpers.interopRequireDefault(_FontAwesome);var
+var _FontAwesome=require(449 /* react-native-vector-icons/FontAwesome */);var _FontAwesome2=babelHelpers.interopRequireDefault(_FontAwesome);
+var _reactNativeToast=require(684 /* @remobile/react-native-toast */);var _reactNativeToast2=babelHelpers.interopRequireDefault(_reactNativeToast);var
 
 About=function(_React$Component){babelHelpers.inherits(About,_React$Component);
 function About(props){babelHelpers.classCallCheck(this,About);var _this=babelHelpers.possibleConstructorReturn(this,(About.__proto__||Object.getPrototypeOf(About)).call(this,
@@ -88601,25 +88602,40 @@ _this.state={
 modalVisible:false,
 id:'',
 ips:{},
-ip:'127.0.0.1'};return _this;
+ip:'127.0.0.1'};
 
-
+_this.copy=_this.copy.bind(_this);return _this;
 }babelHelpers.createClass(About,[{key:"componentWillMount",value:function componentWillMount()
 {var _this2=this;
 _reactNativeNetworkInfo2.default.getAllIPs(function(ips){
 var json=JSON.parse(ips);
-var k1=Object.keys(json)[0];
-var if0=json[k1]['addr'];
+
+var if0=_this2.getPrimaryIPMask(json);
 _this2.setState({
-ip:if0,
+ip:if0.addr,
 ips:json});
 
 });
+}},{key:"getPrimaryIPMask",value:function getPrimaryIPMask(
+ips){
+var pip={addr:'127.0.0.1',mask:'255.255.255.255'};
+if(ips['en0/ipv4']){
+pip=ips['en0/ipv4'];
+}else if(ips['en0/ipv6']){
+pip=ips['en0/ipv6'];
+}else if(ips['pdp_ip0/ipv4']){
+pip=ips['pdp_ip0/ipv4'];
+}else if(ips['pdp_ip0/ipv6']){
+pip=ips['pdp_ip0/ipv6'];
+}
+return pip;
 }},{key:"setModalVisible",value:function setModalVisible(
 visible){
 this.setState({modalVisible:visible});
 }},{key:"renderModalIPs",value:function renderModalIPs()
 {var _this3=this;
+var keys=Object.keys(this.state.ips);
+keys.sort();
 return(
 _react2.default.createElement(_reactNative.Modal,{
 animationType:"slide",
@@ -88642,11 +88658,16 @@ margin:10,
 justifyContent:'center'}},
 
 
-Object.keys(this.state.ips).map(function(k){
+keys.map(function(k){
+var addr=_this3.state.ips[k].addr;
 return(
-_react2.default.createElement(_reactNative.View,{style:{flexDirection:'row'},key:k},
-_react2.default.createElement(_reactNative.Text,{style:{width:60}},k+':'),
-_react2.default.createElement(_reactNative.Text,null,_this3.state.ips[k].addr)));
+_react2.default.createElement(_reactNative.View,{style:{flexDirection:'row'},key:k,onPress:function onPress(){return _this3.copy(addr);}},
+_react2.default.createElement(_reactNative.Text,{style:{fontSize:12,width:60}},k.split('/')[0]),
+_react2.default.createElement(_reactNative.View,null,
+_react2.default.createElement(_reactNative.Text,{style:{fontSize:12}},addr),
+_react2.default.createElement(_reactNative.Text,{style:{fontSize:12}},_this3.state.ips[k].mask),
+_react2.default.createElement(_reactNative.Text,null))));
+
 
 
 })))));
@@ -88654,15 +88675,20 @@ _react2.default.createElement(_reactNative.Text,null,_this3.state.ips[k].addr)))
 
 
 
+}},{key:"copy",value:function copy(
+value){
+_reactNativeToast2.default.show(_reactNativeI18n2.default.t('copy')+' '+_reactNativeI18n2.default.t('ip')+': '+value);
+
+_reactNative.Clipboard.setString(value);
 }},{key:"renderField",value:function renderField(
 
 title,value){var _this4=this;
 return(
 _react2.default.createElement(_reactNative.View,{style:_style2.default.detail_card},
-_react2.default.createElement(_reactNative.View,{style:{flexDirection:'row'}},
-_react2.default.createElement(_reactNative.Text,{style:{width:40,justifyContent:'center',alignItems:'center',fontSize:16,fontWeight:'bold',color:'black'}}," ",title,": "),
+_react2.default.createElement(_reactNative.View,{style:{flexDirection:'row',justifyContent:'center'}},
+_react2.default.createElement(_reactNative.Text,{style:{width:40,fontSize:16,margin:3,fontWeight:'bold',color:'black'}}," ",title,": "),
 _react2.default.createElement(_reactNative.View,{style:{flex:1,flexDirection:'row',justifyContent:'center'}},
-_react2.default.createElement(_reactNative.Text,{style:{marginLeft:0,justifyContent:'center',fontSize:12}},value),
+_react2.default.createElement(_reactNative.Text,{style:{fontSize:12,margin:6},onPress:function onPress(){return _this4.copy(value);}},value),
 _react2.default.createElement(_reactNative.View,{style:{flex:1}}),
 _react2.default.createElement(_FontAwesome2.default,{name:'eye',size:20,style:{width:40},onPress:function onPress(){return _this4.setModalVisible(!_this4.state.modalVisible);}})))));
 
@@ -88677,7 +88703,7 @@ _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}
 _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}}," "),
 _react2.default.createElement(_reactNative.Image,{
 style:{width:100,height:100,backgroundColor:'white'},
-source:require(684 /* ./img/xconn.png */)}),
+source:require(685 /* ./img/xconn.png */)}),
 
 _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}},_reactNativeI18n2.default.t('xconn')," ",_reactNativeDeviceInfo2.default.getVersion()),
 _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}}," "),
@@ -89548,8 +89574,108 @@ root.utf8=utf8;
 
 })(this);
 }, 683, null, "utf8/utf8.js");
+__d(/* @remobile/react-native-toast/index.js */function(global, require, module, exports) {'use strict';
+
+
+var ReactNative=require(12 /* react-native */);var
+
+NativeModules=
+ReactNative.NativeModules;
+
+var RCTToast=NativeModules.Toast;
+var Toast={};
+
+var optionsBuilder=function optionsBuilder(){
+
+
+var message=null;
+var duration="short";
+var position="center";
+var addPixelsY=0;
+
+return{
+withMessage:function withMessage(m){
+message=m;
+return this;
+},
+
+withDuration:function withDuration(d){
+duration=d;
+return this;
+},
+
+withPosition:function withPosition(p){
+position=p;
+return this;
+},
+
+withAddPixelsY:function withAddPixelsY(y){
+addPixelsY=y;
+return this;
+},
+
+build:function build(){
+return{
+message:message,
+duration:duration,
+position:position,
+addPixelsY:addPixelsY};
+
+}};
+
+};
+
+
+var showWithOptions=function showWithOptions(options){
+RCTToast.show(options);
+};
+
+var showToast=function showToast(message,duration,position){
+showWithOptions(
+optionsBuilder().
+withMessage(message||'未知数据').
+withDuration(duration).
+withPosition(position).
+build());
+
+};
+
+Toast.showShortTop=function(message){
+showToast(message,"short","top");
+};
+
+Toast.showShortCenter=function(message){
+showToast(message,"short","center");
+};
+
+Toast.showShortBottom=function(message){
+showToast(message,"short","bottom");
+};
+
+Toast.showLongTop=function(message){
+showToast(message,"long","top");
+};
+
+Toast.showLongCenter=function(message){
+showToast(message,"long","center");
+};
+
+Toast.showLongBottom=function(message){
+showToast(message,"long","bottom");
+};
+
+Toast.show=function(message){
+showToast(message,"short","bottom");
+};
+
+Toast.hide=function(){
+RCTToast.hide();
+};
+
+module.exports=Toast;
+}, 684, null, "@remobile/react-native-toast/index.js");
 __d(/* xconn/src/v/img/xconn.png */function(global, require, module, exports) {module.exports = require(170 /* react-native/Libraries/Image/AssetRegistry */).registerAsset({"__packager_asset":true,"httpServerLocation":"/assets/src/v/img","width":512,"height":512,"scales":[1],"hash":"d562d53ec45ab637bbbb7bcb0865f633","name":"xconn","type":"png"});
-}, 684, null, "xconn/src/v/img/xconn.png");
+}, 685, null, "xconn/src/v/img/xconn.png");
 __d(/* xconn/src/v/Web.js */function(global, require, module, exports) {Object.defineProperty(exports,"__esModule",{value:true});var _react=require(277 /* react */);var _react2=babelHelpers.interopRequireDefault(_react);
 var _reactNative=require(12 /* react-native */);
 var _reactNativeRouterFlux=require(402 /* react-native-router-flux */);
@@ -89595,7 +89721,7 @@ javaScriptEnabled:false})));
 
 
 }}]);return Web;}(_react2.default.Component);exports.default=Web;
-}, 685, null, "xconn/src/v/Web.js");
+}, 686, null, "xconn/src/v/Web.js");
 __d(/* xconn/src/v/FormModal.js */function(global, require, module, exports) {Object.defineProperty(exports,"__esModule",{value:true});var _react=require(277 /* react */);var _react2=babelHelpers.interopRequireDefault(_react);var
 
 
@@ -89617,20 +89743,21 @@ return this.props.renderScene();
 FormModal.propTypes={
 renderScene:_react2.default.PropTypes.func,
 updateDisplayValue:_react2.default.PropTypes.func};
-}, 686, null, "xconn/src/v/FormModal.js");
+}, 687, null, "xconn/src/v/FormModal.js");
 __d(/* xconn/src/lang/all.js */function(global, require, module, exports) {var _reactNativeI18n=require(620 /* react-native-i18n */);var _reactNativeI18n2=babelHelpers.interopRequireDefault(_reactNativeI18n);
 
 _reactNativeI18n2.default.fallbacks=true;
 _reactNativeI18n2.default.translations={
-en:require(688 /* ./en */),
-zh:require(689 /* ./cn */)};
-}, 687, null, "xconn/src/lang/all.js");
+en:require(689 /* ./en */),
+zh:require(690 /* ./cn */)};
+}, 688, null, "xconn/src/lang/all.js");
 __d(/* xconn/src/lang/en.js */function(global, require, module, exports) {module.exports={
 xconn:'Xconn',
 via:'Via',
 email:'Email',
 share:'Share',
 add:'Add',
+copy:'Copy',
 del:'Delete',
 sql:'SQL',
 func:'Function',
@@ -89802,13 +89929,14 @@ tos_modify:'Modification of agreement',
 tos_notice:'Notice delivery',
 tos_legal:'Legal jurisdiction',
 tos_others:'Other regulations'};
-}, 688, null, "xconn/src/lang/en.js");
+}, 689, null, "xconn/src/lang/en.js");
 __d(/* xconn/src/lang/cn.js */function(global, require, module, exports) {module.exports={
 xconn:'Xconn',
 via:'使用',
 email:'邮件',
 share:'分享',
 add:'新建',
+copy:'复制',
 del:'删除',
 sql:'查询',
 func:'函数',
@@ -89979,6 +90107,6 @@ tos_modify:'修改条款',
 tos_notice:'提醒送达',
 tos_legal:'法律管辖',
 tos_others:'其他约束'};
-}, 689, null, "xconn/src/lang/cn.js");
+}, 690, null, "xconn/src/lang/cn.js");
 ;require(213);
 ;require(0);

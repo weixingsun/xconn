@@ -126,6 +126,7 @@ android {
 }
 
 dependencies {
+    compile project(':@remobile/react-native-toast')
     compile project(':react-native-workers')
     compile project(':react-native-network-info')
     compile project(':react-native-background-timer')

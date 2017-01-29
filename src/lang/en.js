@@ -4,6 +4,7 @@ module.exports = {
     email: 'Email',
     share: 'Share',
     add: 'Add',
+    copy: 'Copy',
     del: 'Delete',
     sql: 'SQL',
     func: 'Function',

@@ -30,8 +30,10 @@ self.onmessage = (msg) => {
 
 function loop() {
   //self.postMessage("Ping");
-  let toip = self.bcip==null?self.myip:self.bcip
-  if(self.role === Const.ROLE.SERVER) sendMsg(toip,self.PORT,JSON.stringify(self.pkt))
+  if(self.role===Const.ROLE.SERVER){
+    let toip = self.bcip===''?self.myip:self.bcip
+    sendMsg(toip,self.PORT,JSON.stringify(self.pkt))
+  }
   setTimeout(loop, 5000);
 }
 function changeRole(msg){
@@ -56,7 +58,18 @@ function stopListen(){
 }
 function startListen(){
     if(self.listening) return
-    self.socket = udp.createSocket('udp4')
+    NetworkInfo.getAllIPs(ips => {
+        let pip=getPrimaryIPMask(JSON.parse(ips))
+        self.myip=pip.addr
+        self.bcip = getBroadcastAddr4(pip.mask,pip.addr)
+        //alert(self.myip+' \n'+self.bcip)
+        wrapHbPkt()
+        init()
+    });
+}
+function init(){
+    let p = self.myip.indexOf('.')<0?'udp6':'udp4'
+    self.socket = udp.createSocket(p)
     self.socket.bind(self.PORT, (err)=>{
         if (err) throw err;
         self.socket.setBroadcast(true);
@@ -86,17 +99,30 @@ function startListen(){
     })
     self.listening=true
 }
+function getPrimaryIPMask(ips){
+    let pip = {addr:'127.0.0.1',mask:'255.255.255.255'}
+    if(ips['en0/ipv4']){
+        pip=ips['en0/ipv4']
+    }else if(ips['en0/ipv6']){
+        pip=ips['en0/ipv6']
+    }else if(ips['pdp_ip0/ipv4']){
+        pip=ips['pdp_ip0/ipv4']
+    }else if(ips['pdp_ip0/ipv6']){
+        pip=ips['pdp_ip0/ipv6']
+    }
+    return pip
+}
 function startBroadcast(){
     if(self.broadcasting) return
     self.name=DeviceInfo.getDeviceName()
     self.mfg=DeviceInfo.getManufacturer()
-    NetworkInfo.getIPAddress(ip => {
-        self.myip=ip
-        NetworkInfo.getMask(mask => {
-            self.bcip = getBroadcastAddr4(mask,ip)
-            wrapHbPkt()
-        });
-    });
+    /*NetworkInfo.getAllIPs(ips => {
+        let pip=getPrimaryIPMask(JSON.parse(ips))
+        self.myip=pip.addr
+        self.bcip = getBroadcastAddr4(pip.mask,pip.addr)
+        //alert(self.myip+' \n'+self.bcip)
+        wrapHbPkt()
+    })*/
     self.postMessage("udp startBroadcast");
     self.broadcasting=true
 }
@@ -113,9 +139,6 @@ function wrapHbPkt(){
         mfg:self.mfg,
         //this.sendMsg(bcip,this.UDP_LISTEN_PORT,JSON.stringify(json))
     }
-    //let arr = self.myip.split('.')
-    //self.bcip=arr[0]+'.'+arr[1]+'.'+arr[2]+'.255'
-    //self.bcip='255.255.255.255'
 }
 function sendMsg(host,port,msg){
     if(self.socket!=null){
@@ -131,12 +154,12 @@ function sendMsg(host,port,msg){
         }
       })
     }else{
-      startListen()
+      //startListen()
       startBroadcast()
     }
 }
 /////////////////////////////////////////////////////////////////////////
-function binary_to_ip(binary){
+function binary_to_ip4(binary){
     if (binary.length == 32) {
         let a = parseInt(binary.substr(0, 8), 2);
         let b = parseInt(binary.substr(8, 8), 2);
@@ -146,7 +169,7 @@ function binary_to_ip(binary){
     }
     return '';
 }
-function ip_to_binary(ip){
+function ip_to_binary4(ip){
     if (ip_reg.test(ip)) {
         var ip_str = "", ip_arr = ip.split(".");
         for (var i = 0; i < 4; i++) {
@@ -164,6 +187,8 @@ function ip_to_binary(ip){
     return '';
 }
 function getBroadcastAddr4(mask, ip){
+    if(ip.indexOf('.')<0) return ''
+    /*
     let network_broadcast = [];
     let network_addr = "";
     let mask_arr = mask.split(".");
@@ -178,15 +203,17 @@ function getBroadcastAddr4(mask, ip){
         }
     }
     network_broadcast.push(network_addr);
+    */
     // 计算广播地址
     // 子掩码后面有几个0，就去掉IP地址后几位再补1
-    let mask_binary = ip_to_binary(mask);
-    let ip_binary = ip_to_binary(ip);
+    let mask_binary = ip_to_binary4(mask);
+    let ip_binary = ip_to_binary4(ip);
     let mask_zero = mask_binary.split(0).length - 1;
     let one_number = new Array(mask_zero + 1).join('1'); // IP地址后位补1
     let ip_1 = ip_binary.slice(0, -mask_zero) + one_number;
-    network_broadcast.push(binary_to_ip(ip_1));
-    return network_broadcast;
+    //network_broadcast.push(binary_to_ip(ip_1));
+    //return network_broadcast;
+    return binary_to_ip4(ip_1);
 }
 
 setTimeout(loop, 5000);

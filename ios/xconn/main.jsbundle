@@ -68195,10 +68195,10 @@ var _Menu=require(618 /* ./v/Menu */);var _Menu2=babelHelpers.interopRequireDefa
 var _Home=require(623 /* ./v/Home */);var _Home2=babelHelpers.interopRequireDefault(_Home);
 var _Server=require(667 /* ./v/Server */);var _Server2=babelHelpers.interopRequireDefault(_Server);
 var _Client=require(671 /* ./v/Client */);var _Client2=babelHelpers.interopRequireDefault(_Client);
-var _About=require(680 /* ./v/About */);var _About2=babelHelpers.interopRequireDefault(_About);
-var _Web=require(686 /* ./v/Web */);var _Web2=babelHelpers.interopRequireDefault(_Web);
-var _FormModal=require(687 /* ./v/FormModal */);var _FormModal2=babelHelpers.interopRequireDefault(_FormModal);
-var _all=require(688 /* ./lang/all */);var _all2=babelHelpers.interopRequireDefault(_all);
+var _About=require(672 /* ./v/About */);var _About2=babelHelpers.interopRequireDefault(_About);
+var _Web=require(679 /* ./v/Web */);var _Web2=babelHelpers.interopRequireDefault(_Web);
+var _FormModal=require(680 /* ./v/FormModal */);var _FormModal2=babelHelpers.interopRequireDefault(_FormModal);
+var _all=require(681 /* ./lang/all */);var _all2=babelHelpers.interopRequireDefault(_all);
 var _reactNativeI18n=require(620 /* react-native-i18n */);var _reactNativeI18n2=babelHelpers.interopRequireDefault(_reactNativeI18n);
 var _reactNativePopupMenu=require(624 /* react-native-popup-menu */);
 var _style=require(622 /* ./style */);var _style2=babelHelpers.interopRequireDefault(_style);
@@ -81574,14 +81574,18 @@ renderRightButton:this.renderMore});
 
 }},{key:"chooseServer",value:function chooseServer(
 value){
-if(value===''){
 
-_reactNativeRouterFlux.Actions.server({});
-}else{
-_reactNativeRouterFlux.Actions.client({server:this.state.servers[value]});
-}
+
+
+
+this.updateUI=false;
+var svr=this.state.servers[value];
+
+_reactNativeRouterFlux.Actions.client({server:svr});
+
 }},{key:"renderMore",value:function renderMore()
 {var _this3=this;
+
 return(
 _react2.default.createElement(_reactNative.View,{style:{flex:1}},
 _react2.default.createElement(_reactNativePopupMenu2.default,{name:"serverMenu",onSelect:function onSelect(value){return _this3.chooseServer(value);}},
@@ -81591,8 +81595,8 @@ Object.keys(this.state.servers).length," ",_react2.default.createElement(_FontAw
 
 
 _react2.default.createElement(_reactNativePopupMenu.MenuOptions,null,
-this.renderMoreOption('task_start','','plus'),
 Object.keys(this.state.servers).map(function(k,i){
+
 return _this3.renderMoreOption('task_join',k,'play');
 })))));
 
@@ -81602,7 +81606,7 @@ return _this3.renderMoreOption('task_join',k,'play');
 }},{key:"renderMoreOption",value:function renderMoreOption(
 act,value,icon){
 
-var title=_reactNativeI18n2.default.t(act)+' '+value;
+var title=_reactNativeI18n2.default.t(act)+' '+this.state.servers[value].name;
 return(
 _react2.default.createElement(_reactNativePopupMenu.MenuOption,{value:value,key:value,style:{padding:1}},
 _react2.default.createElement(_reactNative.View,{style:{flexDirection:'row',height:40,backgroundColor:'#494949'}},
@@ -87442,21 +87446,15 @@ return RNDeviceInfo.isTablet;
 __d(/* xconn/src/v/Client.js */function(global, require, module, exports) {Object.defineProperty(exports,"__esModule",{value:true});var _react=require(277 /* react */);var _react2=babelHelpers.interopRequireDefault(_react);
 var _reactNative=require(12 /* react-native */);
 var _reactNativeRouterFlux=require(402 /* react-native-router-flux */);
-var _reactNativeDocumentPicker=require(619 /* react-native-document-picker */);
+
 var _FontAwesome=require(449 /* react-native-vector-icons/FontAwesome */);var _FontAwesome2=babelHelpers.interopRequireDefault(_FontAwesome);
 var _Ionicons=require(668 /* react-native-vector-icons/Ionicons */);var _Ionicons2=babelHelpers.interopRequireDefault(_Ionicons);
-
-
 var _reactNativeI18n=require(620 /* react-native-i18n */);var _reactNativeI18n2=babelHelpers.interopRequireDefault(_reactNativeI18n);
 var _reactNativePopupMenu=require(624 /* react-native-popup-menu */);var _reactNativePopupMenu2=babelHelpers.interopRequireDefault(_reactNativePopupMenu);
 var _style=require(622 /* ../style */);var _style2=babelHelpers.interopRequireDefault(_style);
 var _Const=require(638 /* ../Const */);var _Const2=babelHelpers.interopRequireDefault(_Const);
-var _reactNativeMongoose=require(672 /* react-native-mongoose */);var _reactNativeMongoose2=babelHelpers.interopRequireDefault(_reactNativeMongoose);
-var _reactNativeUdp=require(673 /* react-native-udp */);var _reactNativeUdp2=babelHelpers.interopRequireDefault(_reactNativeUdp);
-
+var _Global=require(639 /* ../Global */);var _Global2=babelHelpers.interopRequireDefault(_Global);
 var _reactNativeAnimatable=require(640 /* react-native-animatable */);var Animatable=babelHelpers.interopRequireWildcard(_reactNativeAnimatable);
-var _reactNativeDeviceInfo=require(670 /* react-native-device-info */);var _reactNativeDeviceInfo2=babelHelpers.interopRequireDefault(_reactNativeDeviceInfo);
-var _reactNativeNetworkInfo=require(679 /* react-native-network-info */);var _reactNativeNetworkInfo2=babelHelpers.interopRequireDefault(_reactNativeNetworkInfo);
 var _apslReactNativeButton=require(661 /* apsl-react-native-button */);var _apslReactNativeButton2=babelHelpers.interopRequireDefault(_apslReactNativeButton);var
 
 Client=function(_React$Component){babelHelpers.inherits(Client,_React$Component);
@@ -87465,27 +87463,20 @@ props));
 _this.ds=new _reactNative.ListView.DataSource({rowHasChanged:function rowHasChanged(r1,r2){return r1!==r2;}});
 _this.state={
 running:true,
-my_server:'127.0.0.1',
-clients:{}};
+my_server:_this.props.server};
 
-_this.ip='127.0.0.1';
 _this.renderMore=_this.renderMore.bind(_this);
 _this.renderMoreOption=_this.renderMoreOption.bind(_this);
-_this.chooseServer=_this.chooseServer.bind(_this);
-_this.taskAction=_this.taskAction.bind(_this);
-_this.hostname=_reactNativeDeviceInfo2.default.getDeviceName();return _this;
+_this.gotoServer=_this.gotoServer.bind(_this);
+_this.taskAction=_this.taskAction.bind(_this);return _this;
 }babelHelpers.createClass(Client,[{key:"componentWillMount",value:function componentWillMount()
 {
 
-
-
-
-
-
-
+_Global2.default.threads.udp.postMessage("join:"+this.props.server.ip);
 }},{key:"componentWillUnmount",value:function componentWillUnmount()
 {
-
+this.stopAll();
+this.updateUI=false;
 }},{key:"componentWillReceiveProps",value:function componentWillReceiveProps(
 
 nextProps){
@@ -87499,77 +87490,6 @@ nextProps){
 
 
 
-}},{key:"getSqlDB",value:function getSqlDB()
-{var _this2=this;
-_reactNative.AsyncStorage.getItem('sqls').then(function(value){
-if(value){
-_this2.setState({
-sqls:JSON.parse(value)});
-
-}
-});
-}},{key:"ab2str16",value:function ab2str16(
-buf){
-return String.fromCharCode.apply(null,new Uint16Array(buf));
-}},{key:"str2ab16",value:function str2ab16(
-str){
-var buf=new ArrayBuffer(str.length*2);
-var bufView=new Uint16Array(buf);
-for(var i=0,strLen=str.length;i<strLen;i++){
-bufView[i]=str.charCodeAt(i);
-}
-return buf;
-}},{key:"ab2str8",value:function ab2str8(
-buf){
-return String.fromCharCode.apply(null,new Uint8Array(buf));
-}},{key:"str2ab8",value:function str2ab8(
-obj){
-var uint=new Uint8Array(obj.length);
-for(var i=0,l=obj.length;i<l;i++){
-uint[i]=obj.charCodeAt(i);
-}
-return new Uint8Array(uint);
-}},{key:"listenUDP",value:function listenUDP()
-{var _this3=this;
-this.udp=_reactNativeUdp2.default.createSocket('udp4');
-this.udp.bind(this.UDP_LISTEN_PORT,function(err){
-if(err)throw err;
-_this3.udp.setBroadcast(true);
-});
-
-this.udp.on('message',function(data,rinfo){
-
-var strMsg=_this3.ab2str8(data);
-var json=JSON.parse(strMsg);
-var servers=_this3.state.servers;
-servers[json.ip]=json;
-_this3.setState({
-servers:servers});
-
-
-_this3.updateWithActionIcon();
-});
-
-this.udp.once('listening',function(){
-
-});
-}},{key:"setupHbUdp",value:function setupHbUdp()
-{var _this4=this;
-this.heartbeat_id=BackgroundTimer.setInterval(function(){
-var json={};
-json['cmd']=_Const2.default.CMD.HB;
-json['role']=_this4.state.role;
-json['ip']=_this4.ip;
-json['name']=_this4.hostname;
-_this4.sendMsg('255.255.255.255',_this4.UDP_LISTEN_PORT,JSON.stringify(json));
-},10000);
-}},{key:"sendMsg",value:function sendMsg(
-host,port,msg){
-var buf=this.str2ab8(msg);
-this.udp.send(buf,0,buf.length,port,host,function(err){
-if(err)throw err;
-console.log('sent msg:'+msg);
-});
 }},{key:"updateWithActionIcon",value:function updateWithActionIcon()
 {
 _reactNativeRouterFlux.Actions.refresh({
@@ -87580,16 +87500,17 @@ renderRightButton:this.renderMore,
 
 file:null});
 
-}},{key:"chooseServer",value:function chooseServer(
+}},{key:"gotoServer",value:function gotoServer(
 value){
-
-
 alert(JSON.stringify(this.state.servers[value]));
+this.updateUI=false;
+
+
 }},{key:"renderMore",value:function renderMore()
-{var _this5=this;
+{var _this2=this;
 return(
 _react2.default.createElement(_reactNative.View,{style:{flex:1}},
-_react2.default.createElement(_reactNativePopupMenu2.default,{onSelect:function onSelect(value){return _this5.chooseServer(value);}},
+_react2.default.createElement(_reactNativePopupMenu2.default,{onSelect:function onSelect(value){return _this2.gotoServer(value);}},
 _react2.default.createElement(_reactNativePopupMenu.MenuTrigger,null,
 _react2.default.createElement(_reactNative.Text,{style:_style2.default.right_icon},
 Object.keys(this.state.servers).length)),
@@ -87598,7 +87519,7 @@ Object.keys(this.state.servers).length)),
 _react2.default.createElement(_reactNativePopupMenu.MenuOptions,null,
 this.renderMoreOption('add','','plus'),
 Object.keys(this.state.servers).map(function(k,i){
-return _this5.renderMoreOption('',k,'play');
+return _this2.renderMoreOption('',k,'play');
 })))));
 
 
@@ -87621,26 +87542,13 @@ _react2.default.createElement(_reactNative.Text,{style:{color:'white'}},title)))
 
 
 
-}},{key:"startAll",value:function startAll()
-{
-this.setState({
-running:true});
-
-_reactNativeMongoose2.default.start({
-port:this.HTTP_SERVER_PORT+'',
-root:'DOCS'});
-
-this.setupHbUdp();
 }},{key:"stopAll",value:function stopAll()
 {
-if(this.state.running)_reactNativeMongoose2.default.stop();
-if(this.udp)this.udp.close();
-BackgroundTimer.clearInterval(this.heartbeat_id);
-this.setState({
-running:false});
+
+_Global2.default.threads.udp.postMessage("exit");
 
 }},{key:"taskAction",value:function taskAction()
-{var _this6=this;
+{var _this3=this;
 if(this.state.running){
 _reactNative.Alert.alert(
 _reactNativeI18n2.default.t("task"),
@@ -87648,13 +87556,13 @@ _reactNativeI18n2.default.t("confirm_stop_task"),
 [
 {text:_reactNativeI18n2.default.t("no")},
 {text:_reactNativeI18n2.default.t('yes'),onPress:function onPress(){
-_this6.stopAll();
+_this3.stopAll();
 _reactNativeRouterFlux.Actions.pop();
 }}]);
 
 
-}else{
-this.startAll();
+
+
 }
 }},{key:"_renderCircle",value:function _renderCircle()
 {
@@ -87697,903 +87605,16 @@ buttonText)));
 
 }}]);return Client;}(_react2.default.Component);exports.default=Client;
 }, 671, null, "xconn/src/v/Client.js");
-__d(/* react-native-mongoose/index.ios.js */function(global, require, module, exports) {var _require=require(12 /* react-native */),NativeModules=_require.NativeModules;
-var _server=NativeModules.RNHTTPServer;
-var _port="9999";
-var _base="";
-var _started=false;
-
-module.exports={
-
-start:function start(opts){
-if(_started){
-console.warn('HTTPServer already running');
-return;
-}
-_port=opts.port;
-_base='http://127.0.0.1:'+opts.port;
-_server.start(opts);
-_started=true;
-},
-
-stop:function stop(){
-if(!_started){
-console.warn('HTTPServer not running');
-return;
-}
-_server.stop();
-_started=false;
-},
-
-url:function url(cb){
-if(!_started){
-console.warn('HTTPServer not running');
-cb('');
-}
-cb(_base);
-},
-
-dir:function dir(url,exts,cb){
-if(!_started){
-console.warn('HTTPServer not running');
-return'';
-}
-
-console.log("Listing ",_base+url);
-
-fetch(_base+url).
-then(function(response){return response.text();}).
-then(function(responseText){
-
-cb(parse_dirlist_getpaths(responseText,exts));
-}).
-catch(function(error){
-console.warn(error);
-});
-}};
-
-
-
-function parse_dirlist_getpaths(html,extensions){
-
-var exts=extensions||['png','jpg','jpeg'];
-
-var links=[];
-var tmp=html.split('<a href="');
-
-for(var i=0,len=tmp.length;i<len;i++){
-var lnk=tmp[i].split('">')[0];
-if(lnk.indexOf('.')>-1){
-var nam=lnk.split('/').slice(-1)[0].split('.')[0];
-var ext=lnk.split('.').slice(-1)[0];
-
-if(exts.indexOf(ext)>-1){
-
-links.push({file:nam,ext:ext,path:lnk});
-}
-}
-}
-
-return links;
-}
-}, 672, null, "react-native-mongoose/index.ios.js");
-__d(/* react-native-udp/UdpSockets.js */function(global, require, module, exports) {
-
-
-
-
-
-var UdpSocket=require(674 /* ./UdpSocket */);
-
-exports.createSocket=function(options){
-if(typeof options==='string')options={type:options};
-return new UdpSocket(options);
-};
-
-exports.Socket=UdpSocket;
-}, 673, null, "react-native-udp/UdpSockets.js");
-__d(/* react-native-udp/UdpSocket.js */function(global, require, module, exports) {
-
-
-
-
-
-
-
-
-
-
-
-'use strict';
-
-var inherits=require(675 /* inherits */);
-var EventEmitter=require(676 /* events */).EventEmitter;var _require=
-
-
-
-require(12 /* react-native */),DeviceEventEmitter=_require.DeviceEventEmitter,NativeModules=_require.NativeModules;
-var Sockets=NativeModules.UdpSockets;
-var base64=require(677 /* base64-js */);
-var ipRegex=require(678 /* ip-regex */);
-
-var hostnameRegex=/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/;
-var noop=function noop(){};
-var instances=0;
-var STATE={
-UNBOUND:0,
-BINDING:1,
-BOUND:2};
-
-
-module.exports=UdpSocket;
-
-function UdpSocket(options,onmessage){
-EventEmitter.call(this);
-
-if(typeof options==='string')options={type:options};
-
-if(options.type!=='udp4'&&options.type!=='udp6'){
-throw new Error('invalid udp socket type');
-}
-
-this.type=options.type;
-this._ipv=Number(this.type.slice(3));
-this._ipRegex=ipRegex['v'+this._ipv]({exact:true});
-this._id=instances++;
-this._state=STATE.UNBOUND;
-this._subscription=DeviceEventEmitter.addListener(
-'udp-'+this._id+'-data',this._onReceive.bind(this));
-
-
-
-if(!this.on)this.on=this.addListener.bind(this);
-
-if(onmessage)this.on('message',onmessage);
-
-Sockets.createSocket(this._id,{
-type:this.type});
-
-}
-
-inherits(UdpSocket,EventEmitter);
-
-UdpSocket.prototype._debug=function(){
-if(__DEV__){
-var args=[].slice.call(arguments);
-args.unshift('socket-'+this._id);
-console.log.apply(console,args);
-}
-};
-
-UdpSocket.prototype.bind=function(port,address,callback){
-var self=this;
-
-if(this._state!==STATE.UNBOUND)throw new Error('Socket is already bound');
-
-if(typeof address==='function'){
-callback=address;
-address=undefined;
-}
-
-if(!address)address='0.0.0.0';
-
-if(!port)port=0;
-
-if(callback)this.once('listening',callback.bind(this));
-
-this._state=STATE.BINDING;
-this._debug('binding, address:',address,'port:',port);
-Sockets.bind(this._id,port,address,function(err,addr){
-err=normalizeError(err);
-if(err){
-
-
-self._state=STATE.UNBOUND;
-self._debug('failed to bind',err);
-if(callback)callback(err);
-return self.emit('error',err);
-}
-
-self._debug('bound to address:',addr.address,'port:',addr.port);
-self._address=addr.address;
-self._port=addr.port;
-self._state=STATE.BOUND;
-self.emit('listening');
-});
-};
-
-UdpSocket.prototype.close=function(){
-if(this._destroyed)return;
-this._destroyed=true;
-this._debug('closing');
-this._subscription.remove();
-
-Sockets.close(this._id,this._debug.bind(this,'closed'));
-this.emit('close');
-};
-
-UdpSocket.prototype._onReceive=function(info){
-
-var buf=typeof Buffer==='undefined'?
-base64.toByteArray(info.data):
-new Buffer(info.data,'base64');
-
-var rinfo={
-address:info.address,
-port:info.port,
-family:'IPv4',
-size:buf.length};
-
-
-this.emit('message',buf,rinfo);
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-UdpSocket.prototype.send=function(buffer,offset,length,port,address,callback){
-var self=this;
-
-if(typeof port!=='number')throw new Error('invalid port');
-if(!isValidIpOrHostname(address,this._ipRegex))throw new Error('invalid address');
-
-if(offset!==0)throw new Error('Non-zero offset not supported yet');
-
-if(this._state===STATE.UNBOUND){
-var args=[].slice.call(arguments);
-return this.bind(0,function(err){
-if(err)return callback(err);
-
-self.send.apply(self,args);
-});
-}else
-if(this._state===STATE.BINDING){
-
-}
-
-callback=callback||noop;
-var str;
-if(typeof buffer==='string'){
-console.warn('socket.send(): interpreting as base64');
-str=buffer;
-}else
-if(typeof Buffer!=='undefined'&&Buffer.isBuffer(buffer)){
-str=buffer.toString('base64');
-}else
-if(buffer instanceof Uint8Array||Array.isArray(buffer)){
-str=base64.fromByteArray(buffer);
-}else
-{
-throw new Error('invalid message format');
-}
-
-Sockets.send(this._id,str,+port,address,function(err){
-err=normalizeError(err);
-if(err){
-self._debug('send failed',err);
-return callback(err);
-}
-
-callback();
-});
-};
-
-UdpSocket.prototype.address=function(){
-if(this._state!==STATE.BOUND){
-throw new Error('socket is not bound yet');
-}
-
-return{
-address:this._address,
-port:this._port,
-family:'IPv4'};
-
-};
-
-UdpSocket.prototype.setBroadcast=function(flag){
-var self=this;
-
-if(this._state!==STATE.BOUND){
-throw new Error('you must bind before setBroadcast()');
-}
-
-Sockets.setBroadcast(this._id,flag,function(err){
-err=normalizeError(err);
-if(err){
-self._debug('failed to set broadcast',err);
-return self.emit('error',err);
-}
-});
-};
-
-UdpSocket.prototype.setTTL=function(ttl){
-
-};
-
-UdpSocket.prototype.setMulticastTTL=function(ttl,callback){
-
-};
-
-UdpSocket.prototype.setMulticastLoopback=function(flag,callback){
-
-};
-
-UdpSocket.prototype.addMembership=function(multicastAddress){
-if(this._state!==STATE.BOUND){
-throw new Error('you must bind before addMembership()');
-}
-
-Sockets.addMembership(this._id,multicastAddress);
-};
-
-UdpSocket.prototype.dropMembership=function(multicastAddress){
-if(this._state!==STATE.BOUND){
-throw new Error('you must bind before addMembership()');
-}
-
-Sockets.dropMembership(this._id,multicastAddress);
-};
-
-UdpSocket.prototype.ref=function(){
-
-};
-
-UdpSocket.prototype.unref=function(){
-
-};
-
-function isValidIpOrHostname(address,ipRegex){
-if(typeof address!=='string')return false;
-
-return ipRegex.test(address)||hostnameRegex.test(address);
-}
-
-function normalizeError(err){
-if(err){
-if(typeof err==='string')err=new Error(err);
-
-return err;
-}
-}
-}, 674, null, "react-native-udp/UdpSocket.js");
-__d(/* inherits/inherits_browser.js */function(global, require, module, exports) {if(typeof Object.create==='function'){
-
-module.exports=function inherits(ctor,superCtor){
-ctor.super_=superCtor;
-ctor.prototype=Object.create(superCtor.prototype,{
-constructor:{
-value:ctor,
-enumerable:false,
-writable:true,
-configurable:true}});
-
-
-};
-}else{
-
-module.exports=function inherits(ctor,superCtor){
-ctor.super_=superCtor;
-var TempCtor=function TempCtor(){};
-TempCtor.prototype=superCtor.prototype;
-ctor.prototype=new TempCtor();
-ctor.prototype.constructor=ctor;
-};
-}
-}, 675, null, "inherits/inherits_browser.js");
-__d(/* events/events.js */function(global, require, module, exports) {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function EventEmitter(){
-this._events=this._events||{};
-this._maxListeners=this._maxListeners||undefined;
-}
-module.exports=EventEmitter;
-
-
-EventEmitter.EventEmitter=EventEmitter;
-
-EventEmitter.prototype._events=undefined;
-EventEmitter.prototype._maxListeners=undefined;
-
-
-
-EventEmitter.defaultMaxListeners=10;
-
-
-
-EventEmitter.prototype.setMaxListeners=function(n){
-if(!isNumber(n)||n<0||isNaN(n))
-throw TypeError('n must be a positive number');
-this._maxListeners=n;
-return this;
-};
-
-EventEmitter.prototype.emit=function(type){
-var er,handler,len,args,i,listeners;
-
-if(!this._events)
-this._events={};
-
-
-if(type==='error'){
-if(!this._events.error||
-isObject(this._events.error)&&!this._events.error.length){
-er=arguments[1];
-if(er instanceof Error){
-throw er;
-}else{
-
-var err=new Error('Uncaught, unspecified "error" event. ('+er+')');
-err.context=er;
-throw err;
-}
-}
-}
-
-handler=this._events[type];
-
-if(isUndefined(handler))
-return false;
-
-if(isFunction(handler)){
-switch(arguments.length){
-
-case 1:
-handler.call(this);
-break;
-case 2:
-handler.call(this,arguments[1]);
-break;
-case 3:
-handler.call(this,arguments[1],arguments[2]);
-break;
-
-default:
-args=Array.prototype.slice.call(arguments,1);
-handler.apply(this,args);}
-
-}else if(isObject(handler)){
-args=Array.prototype.slice.call(arguments,1);
-listeners=handler.slice();
-len=listeners.length;
-for(i=0;i<len;i++){
-listeners[i].apply(this,args);}
-}
-
-return true;
-};
-
-EventEmitter.prototype.addListener=function(type,listener){
-var m;
-
-if(!isFunction(listener))
-throw TypeError('listener must be a function');
-
-if(!this._events)
-this._events={};
-
-
-
-if(this._events.newListener)
-this.emit('newListener',type,
-isFunction(listener.listener)?
-listener.listener:listener);
-
-if(!this._events[type])
-
-this._events[type]=listener;else
-if(isObject(this._events[type]))
-
-this._events[type].push(listener);else
-
-
-this._events[type]=[this._events[type],listener];
-
-
-if(isObject(this._events[type])&&!this._events[type].warned){
-if(!isUndefined(this._maxListeners)){
-m=this._maxListeners;
-}else{
-m=EventEmitter.defaultMaxListeners;
-}
-
-if(m&&m>0&&this._events[type].length>m){
-this._events[type].warned=true;
-console.error('(node) warning: possible EventEmitter memory '+
-'leak detected. %d listeners added. '+
-'Use emitter.setMaxListeners() to increase limit.',
-this._events[type].length);
-if(typeof console.trace==='function'){
-
-console.trace();
-}
-}
-}
-
-return this;
-};
-
-EventEmitter.prototype.on=EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.once=function(type,listener){
-if(!isFunction(listener))
-throw TypeError('listener must be a function');
-
-var fired=false;
-
-function g(){
-this.removeListener(type,g);
-
-if(!fired){
-fired=true;
-listener.apply(this,arguments);
-}
-}
-
-g.listener=listener;
-this.on(type,g);
-
-return this;
-};
-
-
-EventEmitter.prototype.removeListener=function(type,listener){
-var list,position,length,i;
-
-if(!isFunction(listener))
-throw TypeError('listener must be a function');
-
-if(!this._events||!this._events[type])
-return this;
-
-list=this._events[type];
-length=list.length;
-position=-1;
-
-if(list===listener||
-isFunction(list.listener)&&list.listener===listener){
-delete this._events[type];
-if(this._events.removeListener)
-this.emit('removeListener',type,listener);
-
-}else if(isObject(list)){
-for(i=length;i-->0;){
-if(list[i]===listener||
-list[i].listener&&list[i].listener===listener){
-position=i;
-break;
-}
-}
-
-if(position<0)
-return this;
-
-if(list.length===1){
-list.length=0;
-delete this._events[type];
-}else{
-list.splice(position,1);
-}
-
-if(this._events.removeListener)
-this.emit('removeListener',type,listener);
-}
-
-return this;
-};
-
-EventEmitter.prototype.removeAllListeners=function(type){
-var key,listeners;
-
-if(!this._events)
-return this;
-
-
-if(!this._events.removeListener){
-if(arguments.length===0)
-this._events={};else
-if(this._events[type])
-delete this._events[type];
-return this;
-}
-
-
-if(arguments.length===0){
-for(key in this._events){
-if(key==='removeListener')continue;
-this.removeAllListeners(key);
-}
-this.removeAllListeners('removeListener');
-this._events={};
-return this;
-}
-
-listeners=this._events[type];
-
-if(isFunction(listeners)){
-this.removeListener(type,listeners);
-}else if(listeners){
-
-while(listeners.length){
-this.removeListener(type,listeners[listeners.length-1]);}
-}
-delete this._events[type];
-
-return this;
-};
-
-EventEmitter.prototype.listeners=function(type){
-var ret;
-if(!this._events||!this._events[type])
-ret=[];else
-if(isFunction(this._events[type]))
-ret=[this._events[type]];else
-
-ret=this._events[type].slice();
-return ret;
-};
-
-EventEmitter.prototype.listenerCount=function(type){
-if(this._events){
-var evlistener=this._events[type];
-
-if(isFunction(evlistener))
-return 1;else
-if(evlistener)
-return evlistener.length;
-}
-return 0;
-};
-
-EventEmitter.listenerCount=function(emitter,type){
-return emitter.listenerCount(type);
-};
-
-function isFunction(arg){
-return typeof arg==='function';
-}
-
-function isNumber(arg){
-return typeof arg==='number';
-}
-
-function isObject(arg){
-return typeof arg==='object'&&arg!==null;
-}
-
-function isUndefined(arg){
-return arg===void 0;
-}
-}, 676, null, "events/events.js");
-__d(/* base64-js/lib/b64.js */function(global, require, module, exports) {var lookup='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-
-;(function(exports){
-'use strict';
-
-var Arr=typeof Uint8Array!=='undefined'?
-Uint8Array:
-Array;
-
-var PLUS='+'.charCodeAt(0);
-var SLASH='/'.charCodeAt(0);
-var NUMBER='0'.charCodeAt(0);
-var LOWER='a'.charCodeAt(0);
-var UPPER='A'.charCodeAt(0);
-var PLUS_URL_SAFE='-'.charCodeAt(0);
-var SLASH_URL_SAFE='_'.charCodeAt(0);
-
-function decode(elt){
-var code=elt.charCodeAt(0);
-if(code===PLUS||
-code===PLUS_URL_SAFE)
-return 62;
-if(code===SLASH||
-code===SLASH_URL_SAFE)
-return 63;
-if(code<NUMBER)
-return-1;
-if(code<NUMBER+10)
-return code-NUMBER+26+26;
-if(code<UPPER+26)
-return code-UPPER;
-if(code<LOWER+26)
-return code-LOWER+26;
-}
-
-function b64ToByteArray(b64){
-var i,j,l,tmp,placeHolders,arr;
-
-if(b64.length%4>0){
-throw new Error('Invalid string. Length must be a multiple of 4');
-}
-
-
-
-
-
-
-var len=b64.length;
-placeHolders='='===b64.charAt(len-2)?2:'='===b64.charAt(len-1)?1:0;
-
-
-arr=new Arr(b64.length*3/4-placeHolders);
-
-
-l=placeHolders>0?b64.length-4:b64.length;
-
-var L=0;
-
-function push(v){
-arr[L++]=v;
-}
-
-for(i=0,j=0;i<l;i+=4,j+=3){
-tmp=decode(b64.charAt(i))<<18|decode(b64.charAt(i+1))<<12|decode(b64.charAt(i+2))<<6|decode(b64.charAt(i+3));
-push((tmp&0xFF0000)>>16);
-push((tmp&0xFF00)>>8);
-push(tmp&0xFF);
-}
-
-if(placeHolders===2){
-tmp=decode(b64.charAt(i))<<2|decode(b64.charAt(i+1))>>4;
-push(tmp&0xFF);
-}else if(placeHolders===1){
-tmp=decode(b64.charAt(i))<<10|decode(b64.charAt(i+1))<<4|decode(b64.charAt(i+2))>>2;
-push(tmp>>8&0xFF);
-push(tmp&0xFF);
-}
-
-return arr;
-}
-
-function uint8ToBase64(uint8){
-var i,
-extraBytes=uint8.length%3,
-output="",
-temp,length;
-
-function encode(num){
-return lookup.charAt(num);
-}
-
-function tripletToBase64(num){
-return encode(num>>18&0x3F)+encode(num>>12&0x3F)+encode(num>>6&0x3F)+encode(num&0x3F);
-}
-
-
-for(i=0,length=uint8.length-extraBytes;i<length;i+=3){
-temp=(uint8[i]<<16)+(uint8[i+1]<<8)+uint8[i+2];
-output+=tripletToBase64(temp);
-}
-
-
-switch(extraBytes){
-case 1:
-temp=uint8[uint8.length-1];
-output+=encode(temp>>2);
-output+=encode(temp<<4&0x3F);
-output+='==';
-break;
-case 2:
-temp=(uint8[uint8.length-2]<<8)+uint8[uint8.length-1];
-output+=encode(temp>>10);
-output+=encode(temp>>4&0x3F);
-output+=encode(temp<<2&0x3F);
-output+='=';
-break;}
-
-
-return output;
-}
-
-exports.toByteArray=b64ToByteArray;
-exports.fromByteArray=uint8ToBase64;
-})(typeof exports==='undefined'?this.base64js={}:exports);
-}, 677, null, "base64-js/lib/b64.js");
-__d(/* ip-regex/index.js */function(global, require, module, exports) {'use strict';
-
-var v4='(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])(?:\\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])){3}';
-var v6='(?:(?:[0-9a-fA-F:]){1,4}(?:(?::(?:[0-9a-fA-F]){1,4}|:)){2,7})+';
-
-var ip=module.exports=function(opts){
-opts=opts||{};
-return opts.exact?new RegExp('(?:^'+v4+'$)|(?:^'+v6+'$)'):
-new RegExp('(?:'+v4+')|(?:'+v6+')','g');
-};
-
-ip.v4=function(opts){
-opts=opts||{};
-return opts.exact?new RegExp('^'+v4+'$'):new RegExp(v4,'g');
-};
-
-ip.v6=function(opts){
-opts=opts||{};
-return opts.exact?new RegExp('^'+v6+'$'):new RegExp(v6,'g');
-};
-}, 678, null, "ip-regex/index.js");
-__d(/* react-native-network-info/NetworkInfo.js */function(global, require, module, exports) {'use strict';
-
-var RNNetworkInfo=require(12 /* react-native */).NativeModules.RNNetworkInfo;
-
-var NetworkInfo={
-getSSID:function getSSID(ssid){
-RNNetworkInfo.getSSID(ssid);
-},
-
-getAllIPs:function getAllIPs(ips){
-RNNetworkInfo.getAllIPs(ips);
-},
-getIPAddress:function getIPAddress(ip){
-RNNetworkInfo.getIPAddress(ip);
-},
-
-getMask:function getMask(ip){
-RNNetworkInfo.getMask(ip);
-},
-
-getRouterIPAddress:function getRouterIPAddress(ip){
-RNNetworkInfo.getRouterIPAddress(ip);
-},
-
-ping:function ping(url,found){
-RNNetworkInfo.ping(url,found);
-},
-
-wake:function wake(mac,ip,formattedMac){
-RNNetworkInfo.wake(mac,ip,formattedMac);
-}};
-
-
-module.exports=NetworkInfo;
-}, 679, null, "react-native-network-info/NetworkInfo.js");
 __d(/* xconn/src/v/About.js */function(global, require, module, exports) {Object.defineProperty(exports,"__esModule",{value:true});var _react=require(277 /* react */);var _react2=babelHelpers.interopRequireDefault(_react);
 var _reactNative=require(12 /* react-native */);
 var _reactNativeRouterFlux=require(402 /* react-native-router-flux */);
-var _reactNativeFs=require(681 /* react-native-fs */);var _reactNativeFs2=babelHelpers.interopRequireDefault(_reactNativeFs);
+var _reactNativeFs=require(673 /* react-native-fs */);var _reactNativeFs2=babelHelpers.interopRequireDefault(_reactNativeFs);
 var _reactNativeI18n=require(620 /* react-native-i18n */);var _reactNativeI18n2=babelHelpers.interopRequireDefault(_reactNativeI18n);
 var _reactNativeDeviceInfo=require(670 /* react-native-device-info */);var _reactNativeDeviceInfo2=babelHelpers.interopRequireDefault(_reactNativeDeviceInfo);
 var _style=require(622 /* ../style */);var _style2=babelHelpers.interopRequireDefault(_style);
-var _reactNativeNetworkInfo=require(679 /* react-native-network-info */);var _reactNativeNetworkInfo2=babelHelpers.interopRequireDefault(_reactNativeNetworkInfo);
+var _reactNativeNetworkInfo=require(676 /* react-native-network-info */);var _reactNativeNetworkInfo2=babelHelpers.interopRequireDefault(_reactNativeNetworkInfo);
 var _FontAwesome=require(449 /* react-native-vector-icons/FontAwesome */);var _FontAwesome2=babelHelpers.interopRequireDefault(_FontAwesome);
-var _reactNativeToast=require(684 /* @remobile/react-native-toast */);var _reactNativeToast2=babelHelpers.interopRequireDefault(_reactNativeToast);var
+var _reactNativeToast=require(677 /* @remobile/react-native-toast */);var _reactNativeToast2=babelHelpers.interopRequireDefault(_reactNativeToast);var
 
 About=function(_React$Component){babelHelpers.inherits(About,_React$Component);
 function About(props){babelHelpers.classCallCheck(this,About);var _this=babelHelpers.possibleConstructorReturn(this,(About.__proto__||Object.getPrototypeOf(About)).call(this,
@@ -88703,7 +87724,7 @@ _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}
 _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}}," "),
 _react2.default.createElement(_reactNative.Image,{
 style:{width:100,height:100,backgroundColor:'white'},
-source:require(685 /* ./img/xconn.png */)}),
+source:require(678 /* ./img/xconn.png */)}),
 
 _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}},_reactNativeI18n2.default.t('xconn')," ",_reactNativeDeviceInfo2.default.getVersion()),
 _react2.default.createElement(_reactNative.Text,{style:{justifyContent:'center'}}," "),
@@ -88732,7 +87753,7 @@ this.renderModalIPs()));
 
 
 }}]);return About;}(_react2.default.Component);exports.default=About;
-}, 680, null, "xconn/src/v/About.js");
+}, 672, null, "xconn/src/v/About.js");
 __d(/* react-native-fs/FS.common.js */function(global, require, module, exports) {
 
 
@@ -88746,8 +87767,8 @@ var RNFSManager=require(12 /* react-native */).NativeModules.RNFSManager;
 
 var NativeAppEventEmitter=require(12 /* react-native */).NativeAppEventEmitter;
 var DeviceEventEmitter=require(12 /* react-native */).DeviceEventEmitter;
-var base64=require(682 /* base-64 */);
-var utf8=require(683 /* utf8 */);
+var base64=require(674 /* base-64 */);
+var utf8=require(675 /* utf8 */);
 
 var RNFSFileTypeRegular=RNFSManager.RNFSFileTypeRegular;
 var RNFSFileTypeDirectory=RNFSManager.RNFSFileTypeDirectory;
@@ -89162,7 +88183,7 @@ PicturesDirectoryPath:RNFSManager.RNFSPicturesDirectoryPath};
 
 
 module.exports=RNFS;
-}, 681, null, "react-native-fs/FS.common.js");
+}, 673, null, "react-native-fs/FS.common.js");
 __d(/* base-64/base64.js */function(global, require, module, exports) {
 ;(function(root){
 
@@ -89328,7 +88349,7 @@ root.base64=base64;
 }
 
 })(this);
-}, 682, null, "base-64/base64.js");
+}, 674, null, "base-64/base64.js");
 __d(/* utf8/utf8.js */function(global, require, module, exports) {
 ;(function(root){
 
@@ -89573,7 +88594,42 @@ root.utf8=utf8;
 }
 
 })(this);
-}, 683, null, "utf8/utf8.js");
+}, 675, null, "utf8/utf8.js");
+__d(/* react-native-network-info/NetworkInfo.js */function(global, require, module, exports) {'use strict';
+
+var RNNetworkInfo=require(12 /* react-native */).NativeModules.RNNetworkInfo;
+
+var NetworkInfo={
+getSSID:function getSSID(ssid){
+RNNetworkInfo.getSSID(ssid);
+},
+
+getAllIPs:function getAllIPs(ips){
+RNNetworkInfo.getAllIPs(ips);
+},
+getIPAddress:function getIPAddress(ip){
+RNNetworkInfo.getIPAddress(ip);
+},
+
+getMask:function getMask(ip){
+RNNetworkInfo.getMask(ip);
+},
+
+getRouterIPAddress:function getRouterIPAddress(ip){
+RNNetworkInfo.getRouterIPAddress(ip);
+},
+
+ping:function ping(url,found){
+RNNetworkInfo.ping(url,found);
+},
+
+wake:function wake(mac,ip,formattedMac){
+RNNetworkInfo.wake(mac,ip,formattedMac);
+}};
+
+
+module.exports=NetworkInfo;
+}, 676, null, "react-native-network-info/NetworkInfo.js");
 __d(/* @remobile/react-native-toast/index.js */function(global, require, module, exports) {'use strict';
 
 
@@ -89673,13 +88729,13 @@ RCTToast.hide();
 };
 
 module.exports=Toast;
-}, 684, null, "@remobile/react-native-toast/index.js");
+}, 677, null, "@remobile/react-native-toast/index.js");
 __d(/* xconn/src/v/img/xconn.png */function(global, require, module, exports) {module.exports = require(170 /* react-native/Libraries/Image/AssetRegistry */).registerAsset({"__packager_asset":true,"httpServerLocation":"/assets/src/v/img","width":512,"height":512,"scales":[1],"hash":"d562d53ec45ab637bbbb7bcb0865f633","name":"xconn","type":"png"});
-}, 685, null, "xconn/src/v/img/xconn.png");
+}, 678, null, "xconn/src/v/img/xconn.png");
 __d(/* xconn/src/v/Web.js */function(global, require, module, exports) {Object.defineProperty(exports,"__esModule",{value:true});var _react=require(277 /* react */);var _react2=babelHelpers.interopRequireDefault(_react);
 var _reactNative=require(12 /* react-native */);
 var _reactNativeRouterFlux=require(402 /* react-native-router-flux */);
-var _reactNativeFs=require(681 /* react-native-fs */);var _reactNativeFs2=babelHelpers.interopRequireDefault(_reactNativeFs);
+var _reactNativeFs=require(673 /* react-native-fs */);var _reactNativeFs2=babelHelpers.interopRequireDefault(_reactNativeFs);
 var _reactNativeI18n=require(620 /* react-native-i18n */);var _reactNativeI18n2=babelHelpers.interopRequireDefault(_reactNativeI18n);
 var _reactNativeDeviceInfo=require(670 /* react-native-device-info */);var _reactNativeDeviceInfo2=babelHelpers.interopRequireDefault(_reactNativeDeviceInfo);
 var _style=require(622 /* ../style */);var _style2=babelHelpers.interopRequireDefault(_style);var
@@ -89721,7 +88777,7 @@ javaScriptEnabled:false})));
 
 
 }}]);return Web;}(_react2.default.Component);exports.default=Web;
-}, 686, null, "xconn/src/v/Web.js");
+}, 679, null, "xconn/src/v/Web.js");
 __d(/* xconn/src/v/FormModal.js */function(global, require, module, exports) {Object.defineProperty(exports,"__esModule",{value:true});var _react=require(277 /* react */);var _react2=babelHelpers.interopRequireDefault(_react);var
 
 
@@ -89743,14 +88799,14 @@ return this.props.renderScene();
 FormModal.propTypes={
 renderScene:_react2.default.PropTypes.func,
 updateDisplayValue:_react2.default.PropTypes.func};
-}, 687, null, "xconn/src/v/FormModal.js");
+}, 680, null, "xconn/src/v/FormModal.js");
 __d(/* xconn/src/lang/all.js */function(global, require, module, exports) {var _reactNativeI18n=require(620 /* react-native-i18n */);var _reactNativeI18n2=babelHelpers.interopRequireDefault(_reactNativeI18n);
 
 _reactNativeI18n2.default.fallbacks=true;
 _reactNativeI18n2.default.translations={
-en:require(689 /* ./en */),
-zh:require(690 /* ./cn */)};
-}, 688, null, "xconn/src/lang/all.js");
+en:require(682 /* ./en */),
+zh:require(683 /* ./cn */)};
+}, 681, null, "xconn/src/lang/all.js");
 __d(/* xconn/src/lang/en.js */function(global, require, module, exports) {module.exports={
 xconn:'Xconn',
 via:'Via',
@@ -89929,7 +88985,7 @@ tos_modify:'Modification of agreement',
 tos_notice:'Notice delivery',
 tos_legal:'Legal jurisdiction',
 tos_others:'Other regulations'};
-}, 689, null, "xconn/src/lang/en.js");
+}, 682, null, "xconn/src/lang/en.js");
 __d(/* xconn/src/lang/cn.js */function(global, require, module, exports) {module.exports={
 xconn:'Xconn',
 via:'使用',
@@ -90107,6 +89163,6 @@ tos_modify:'修改条款',
 tos_notice:'提醒送达',
 tos_legal:'法律管辖',
 tos_others:'其他约束'};
-}, 690, null, "xconn/src/lang/cn.js");
+}, 683, null, "xconn/src/lang/cn.js");
 ;require(213);
 ;require(0);

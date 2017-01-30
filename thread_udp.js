@@ -23,6 +23,8 @@ self.PORT = 9998
 self.onmessage = (msg) => {
   if(msg==='start') startListen()
   //else if(msg==='stop') stopListen()
+  else if(msg==='exit') exit()
+  else if(msg.startsWith('join:')) joinServer(msg)
   else if(msg.startsWith('role:')) changeRole(msg)
   //alert('worker udp received message: '+ msg);
   //self.postMessage("Ping");
@@ -33,14 +35,22 @@ function loop() {
   if(self.role===Const.ROLE.SERVER){
     let toip = self.bcip===''?self.myip:self.bcip
     sendMsg(toip,self.PORT,JSON.stringify(self.pkt))
+  }else if(typeof self.svip!=='undefined' && self.svip!==null){
+    console.log('svip='+self.svip)
+    sendMsg(self.svip,self.PORT,JSON.stringify(self.pkt))
   }
   setTimeout(loop, 5000);
 }
 function changeRole(msg){
   self.role=msg.substring(5)
-  if(self.role === Const.ROLE.SERVER) startBroadcast()
-  //else stopBroadcast()
   self.postMessage("udp role:"+self.role);
+}
+function joinServer(msg){
+  self.svip=msg.substring(5)
+  self.postMessage("udp join:"+self.svip);
+}
+function exit(){
+  self.svip = null
 }
 function arr2str(buf) {
     return String.fromCharCode.apply(null, new Uint8Array(buf));
@@ -63,8 +73,8 @@ function startListen(){
         self.myip=pip.addr
         self.bcip = getBroadcastAddr4(pip.mask,pip.addr)
         //alert(self.myip+' \n'+self.bcip)
-        wrapHbPkt()
         init()
+        wrapHbPkt()
     });
 }
 function init(){
@@ -82,9 +92,9 @@ function init(){
         let body = JSON.parse(strMsg)
         let udp_msg = {}
         udp_msg['p']='udp'
-        udp_msg['role']=self.role
+        //udp_msg['role']=self.role
         udp_msg['body']=body
-        udp_msg['type']='rcv'
+        //udp_msg['type']='rcv'
         self.postMessage(JSON.stringify(udp_msg));
         //alert(strMsg)
         //var servers = this.state.servers
@@ -97,6 +107,8 @@ function init(){
     self.socket.once('listening', ()=>{
         self.postMessage("udp is listening");
     })
+    self.name=DeviceInfo.getDeviceName()
+    self.mfg=DeviceInfo.getManufacturer()
     self.listening=true
 }
 function getPrimaryIPMask(ips){
@@ -111,20 +123,6 @@ function getPrimaryIPMask(ips){
         pip=ips['pdp_ip0/ipv6']
     }
     return pip
-}
-function startBroadcast(){
-    if(self.broadcasting) return
-    self.name=DeviceInfo.getDeviceName()
-    self.mfg=DeviceInfo.getManufacturer()
-    /*NetworkInfo.getAllIPs(ips => {
-        let pip=getPrimaryIPMask(JSON.parse(ips))
-        self.myip=pip.addr
-        self.bcip = getBroadcastAddr4(pip.mask,pip.addr)
-        //alert(self.myip+' \n'+self.bcip)
-        wrapHbPkt()
-    })*/
-    self.postMessage("udp startBroadcast");
-    self.broadcasting=true
 }
 function stopBroadcast(){
     self.socket.close()
@@ -149,13 +147,13 @@ function sendMsg(host,port,msg){
           //if(self.socket.close) self.socket.close()
           //startBroadcast()
           console.log('error sent msg:'+msg)
-        }else{
-          console.log('sent msg:'+msg)
+        //}else{
+          //alert('sent msg:'+msg)
         }
       })
     }else{
       //startListen()
-      startBroadcast()
+      //startBroadcast()
     }
 }
 /////////////////////////////////////////////////////////////////////////

@@ -1,21 +1,15 @@
 import React from 'react';
 import {Alert, AsyncStorage,Dimensions, Image, ListView, Platform, StyleSheet, Text, TouchableHighlight, View, } from "react-native";
 import {Actions} from "react-native-router-flux";
-import {DocumentPickerUtil,DocumentPicker} from "react-native-document-picker";
+//import {DocumentPickerUtil,DocumentPicker} from "react-native-document-picker";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import IIcon from 'react-native-vector-icons/Ionicons';
-//import RNFS from 'react-native-fs';
-//import { Col, Row, Grid } from "react-native-easy-grid";
 import I18n from 'react-native-i18n';
 import Menu, { MenuContext, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 import styles from '../style'
 import Const from '../Const'
-import http from 'react-native-mongoose'
-import udp from 'react-native-udp'  //'dgram'
-//import BackgroundTimer from 'react-native-background-timer';
+import Global from '../Global'
 import * as Animatable from 'react-native-animatable';
-import DeviceInfo from 'react-native-device-info'
-import NetworkInfo from 'react-native-network-info'
 import Button from 'apsl-react-native-button'
 
 export default class Client extends React.Component {
@@ -24,27 +18,20 @@ export default class Client extends React.Component {
         this.ds= new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
         this.state={ 
             running:true,
-            my_server:'127.0.0.1',
-            clients:{}, //available to connect from server
+            my_server:this.props.server,
         }
-        this.ip='127.0.0.1'
         this.renderMore=this.renderMore.bind(this)
         this.renderMoreOption=this.renderMoreOption.bind(this)
-        this.chooseServer=this.chooseServer.bind(this)
+        this.gotoServer=this.gotoServer.bind(this)
         this.taskAction=this.taskAction.bind(this)
-        this.hostname = DeviceInfo.getDeviceName()
     }
     componentWillMount() {
-        //this.getSqlDB()
         //this.updateWithActionIcon()
-        //this.startAll()
-        //NetworkInfo.getIPAddress(ip => {
-        //  this.ip=ip
-        //});
-        //alert('Client.componentWillMount')
+        Global.threads.udp.postMessage("join:"+this.props.server.ip);
     }
     componentWillUnmount(){
-        //this.stopAll()
+        this.stopAll()
+        this.updateUI=false
     }
     //netmask = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)temp_addr->ifa_netmask)->sin_addr)];
     componentWillReceiveProps(nextProps) {
@@ -59,77 +46,6 @@ export default class Client extends React.Component {
         //    this.getSqlDB()
         //}
     }
-    getSqlDB(){
-        AsyncStorage.getItem('sqls').then((value)=>{
-            if(value){
-                this.setState({
-                    sqls:JSON.parse(value)
-                });
-            }
-        });
-    }
-    ab2str16(buf) {
-      return String.fromCharCode.apply(null, new Uint16Array(buf));
-    }
-    str2ab16(str) {
-      var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
-      var bufView = new Uint16Array(buf);
-      for (var i=0, strLen=str.length; i<strLen; i++) {
-        bufView[i] = str.charCodeAt(i);
-      }
-      return buf;
-    }
-    ab2str8(buf) {
-      return String.fromCharCode.apply(null, new Uint8Array(buf));
-    }
-    str2ab8(obj) {
-      var uint = new Uint8Array(obj.length);
-      for (var i = 0, l = obj.length; i < l; i++){
-        uint[i] = obj.charCodeAt(i);
-      }
-      return new Uint8Array(uint);
-    }
-    listenUDP(){
-        this.udp = udp.createSocket('udp4')
-        this.udp.bind(this.UDP_LISTEN_PORT, (err)=>{
-            if (err) throw err;
-            this.udp.setBroadcast(true);
-        });
-        //receive
-        this.udp.on('message', (data, rinfo)=>{
-            //let msg = data.toString() //b64.fromByteArray(data)
-            let strMsg = this.ab2str8(data)
-            let json = JSON.parse(strMsg)
-            var servers = this.state.servers
-            servers[json.ip]=json
-            this.setState({
-                servers
-            })
-            //console.warn('received msg:'+msg)
-            this.updateWithActionIcon()
-        })
-        //ready
-        this.udp.once('listening', ()=>{
-            //this.sendMsg('255.255.255.255',this.UDP_LISTEN_PORT,'ON')
-        })
-    }
-    setupHbUdp(){
-        this.heartbeat_id = BackgroundTimer.setInterval(() => {
-            let json = {}
-            json['cmd']=Const.CMD.HB
-            json['role']=this.state.role
-            json['ip']=this.ip
-            json['name']=this.hostname
-            this.sendMsg('255.255.255.255',this.UDP_LISTEN_PORT,JSON.stringify(json))
-        }, 10000);
-    }
-    sendMsg(host,port,msg){
-        var buf = this.str2ab8(msg)
-        this.udp.send(buf, 0, buf.length, port, host, (err)=>{
-            if (err) throw err
-            console.log('sent msg:'+msg)
-        })
-    }
     updateWithActionIcon(){
         Actions.refresh({
             key:'home',
@@ -140,15 +56,16 @@ export default class Client extends React.Component {
             file:null,
         });
     }
-    chooseServer(value){
-        //if(value==='') Actions.sql_add({})
-        //else Actions.result({file:this.file.full,sql:value})
+    gotoServer(value){
         alert(JSON.stringify(this.state.servers[value]))
+        this.updateUI=false
+        //let url = 'http://'+ip+':'+Const.PORT.HTTP
+        //Actions.web({url})
     }
     renderMore(){
         return (
           <View style={{ flex:1 }}>
-            <Menu onSelect={(value) => this.chooseServer(value) }>
+            <Menu onSelect={(value) => this.gotoServer(value) }>
               <MenuTrigger>
                 <Text style={styles.right_icon}>
                   {Object.keys(this.state.servers).length}
@@ -181,23 +98,10 @@ export default class Client extends React.Component {
             </MenuOption>
         )
     }
-    startAll(){
-        this.setState({
-            running:true,
-        })
-        http.start({
-            port:this.HTTP_SERVER_PORT+'',
-            root:'DOCS',
-        })
-        this.setupHbUdp()
-    }
     stopAll(){
-        if(this.state.running) http.stop()
-        if(this.udp) this.udp.close()
-        BackgroundTimer.clearInterval(this.heartbeat_id)
-        this.setState({
-            running:false,
-        })
+        //Actions.pop()
+        Global.threads.udp.postMessage("exit");
+        //Global.threads.http.postMessage("stop");
     }
     taskAction(){
         if(this.state.running){
@@ -212,8 +116,8 @@ export default class Client extends React.Component {
                     }},
                 ]
             );
-        }else{ 
-            this.startAll()
+        //}else{ 
+            //this.startAll()
         }
     }
     _renderCircle() {

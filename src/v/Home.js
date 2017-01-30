@@ -56,14 +56,18 @@ export default class Home extends React.Component {
         });
     }
     chooseServer(value){
-        if(value===''){
+        //if(value===''){
             //this.changeRole(true)
-            Actions.server({})
-        }else {
-            Actions.client({server:this.state.servers[value]})
-        }
+            //Actions.server({})
+        //}else {
+            this.updateUI=false
+            let svr = this.state.servers[value]
+            //alert('value='+value+'\n'+JSON.stringify(this.state.servers))
+            Actions.client({server:svr})
+        //}
     }
     renderMore(){
+        //{this.renderMoreOption('task_start','','plus')}
         return (
           <View style={{ flex:1 }}>
             <Menu name='serverMenu' onSelect={(value)=>this.chooseServer(value)}>
@@ -73,8 +77,8 @@ export default class Home extends React.Component {
                 </Text>
               </MenuTrigger>
               <MenuOptions>
-                {this.renderMoreOption('task_start','','plus')}
                 {Object.keys(this.state.servers).map((k,i)=>{
+                    //let name = this.state.servers[k].name
                     return this.renderMoreOption('task_join',k,'play')
                 })}
               </MenuOptions>
@@ -84,7 +88,7 @@ export default class Home extends React.Component {
     }
     renderMoreOption(act,value,icon){
         //style={{backgroundColor:'white'}}
-        let title=I18n.t(act)+' '+value
+        let title=I18n.t(act)+' '+this.state.servers[value].name
         return (
             <MenuOption value={value} key={value} style={{padding:1}}>
                 <View style={{flexDirection:'row',height:40,backgroundColor:'#494949'}}>

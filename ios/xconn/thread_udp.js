@@ -1615,6 +1615,8 @@ _reactNativeWorkers.self.PORT=9998;
 _reactNativeWorkers.self.onmessage=function(msg){
 if(msg==='start')startListen();else
 
+if(msg==='exit')exit();else
+if(msg.startsWith('join:'))joinServer(msg);else
 if(msg.startsWith('role:'))changeRole(msg);
 
 
@@ -1625,14 +1627,22 @@ function loop(){
 if(_reactNativeWorkers.self.role===_Const2.default.ROLE.SERVER){
 var toip=_reactNativeWorkers.self.bcip===''?_reactNativeWorkers.self.myip:_reactNativeWorkers.self.bcip;
 sendMsg(toip,_reactNativeWorkers.self.PORT,JSON.stringify(_reactNativeWorkers.self.pkt));
+}else if(typeof _reactNativeWorkers.self.svip!=='undefined'&&_reactNativeWorkers.self.svip!==null){
+console.log('svip='+_reactNativeWorkers.self.svip);
+sendMsg(_reactNativeWorkers.self.svip,_reactNativeWorkers.self.PORT,JSON.stringify(_reactNativeWorkers.self.pkt));
 }
 setTimeout(loop,5000);
 }
 function changeRole(msg){
 _reactNativeWorkers.self.role=msg.substring(5);
-if(_reactNativeWorkers.self.role===_Const2.default.ROLE.SERVER)startBroadcast();
-
 _reactNativeWorkers.self.postMessage("udp role:"+_reactNativeWorkers.self.role);
+}
+function joinServer(msg){
+_reactNativeWorkers.self.svip=msg.substring(5);
+_reactNativeWorkers.self.postMessage("udp join:"+_reactNativeWorkers.self.svip);
+}
+function exit(){
+_reactNativeWorkers.self.svip=null;
 }
 function arr2str(buf){
 return String.fromCharCode.apply(null,new Uint8Array(buf));
@@ -1655,8 +1665,8 @@ var pip=getPrimaryIPMask(JSON.parse(ips));
 _reactNativeWorkers.self.myip=pip.addr;
 _reactNativeWorkers.self.bcip=getBroadcastAddr4(pip.mask,pip.addr);
 
-wrapHbPkt();
 init();
+wrapHbPkt();
 });
 }
 function init(){
@@ -1674,9 +1684,9 @@ var strMsg=_hiBase2.default.decode(str64);
 var body=JSON.parse(strMsg);
 var udp_msg={};
 udp_msg['p']='udp';
-udp_msg['role']=_reactNativeWorkers.self.role;
+
 udp_msg['body']=body;
-udp_msg['type']='rcv';
+
 _reactNativeWorkers.self.postMessage(JSON.stringify(udp_msg));
 
 
@@ -1689,6 +1699,8 @@ _reactNativeWorkers.self.postMessage(JSON.stringify(udp_msg));
 _reactNativeWorkers.self.socket.once('listening',function(){
 _reactNativeWorkers.self.postMessage("udp is listening");
 });
+_reactNativeWorkers.self.name=_reactNativeDeviceInfo2.default.getDeviceName();
+_reactNativeWorkers.self.mfg=_reactNativeDeviceInfo2.default.getManufacturer();
 _reactNativeWorkers.self.listening=true;
 }
 function getPrimaryIPMask(ips){
@@ -1703,20 +1715,6 @@ pip=ips['pdp_ip0/ipv4'];
 pip=ips['pdp_ip0/ipv6'];
 }
 return pip;
-}
-function startBroadcast(){
-if(_reactNativeWorkers.self.broadcasting)return;
-_reactNativeWorkers.self.name=_reactNativeDeviceInfo2.default.getDeviceName();
-_reactNativeWorkers.self.mfg=_reactNativeDeviceInfo2.default.getManufacturer();
-
-
-
-
-
-
-
-_reactNativeWorkers.self.postMessage("udp startBroadcast");
-_reactNativeWorkers.self.broadcasting=true;
 }
 function stopBroadcast(){
 _reactNativeWorkers.self.socket.close();
@@ -1741,13 +1739,13 @@ if(err){
 
 
 console.log('error sent msg:'+msg);
-}else{
-console.log('sent msg:'+msg);
+
+
 }
 });
 }else{
 
-startBroadcast();
+
 }
 }
 
